@@ -4,10 +4,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import {
-  LayoutDashboard,
-  BarChart3,
   Calendar,
-  Users,
   Settings,
   Bell,
   MessageSquare,
@@ -20,6 +17,18 @@ import {
   Clock,
   Info
 } from "lucide-react";
+import {
+  IconLayoutDashboard,
+  IconLayoutDashboardFilled,
+  IconChartPie,
+  IconChartPieFilled,
+  IconCalendar,
+  IconCalendarFilled,
+  IconUser,
+  IconUserFilled,
+  IconSettings,
+  IconSettingsFilled
+} from "@tabler/icons-react";
 import { AhnaraCard } from "@/components/ahnara/AhnaraCard";
 import { AhnaraButton } from "@/components/ahnara/AhnaraButton";
 
@@ -28,11 +37,11 @@ export default function SchedulePage() {
   const [searchValue, setSearchValue] = useState("");
 
   const menuItems = [
-    { name: "Dashboard", icon: LayoutDashboard },
-    { name: "Statistics", icon: BarChart3 },
-    { name: "Schedule", icon: Calendar },
-    { name: "Doctors", icon: Users },
-    { name: "Settings", icon: Settings },
+    { name: "Dashboard", icon: IconLayoutDashboard, activeIcon: IconLayoutDashboardFilled },
+    { name: "Statistics", icon: IconChartPie, activeIcon: IconChartPieFilled },
+    { name: "Schedule", icon: IconCalendar, activeIcon: IconCalendarFilled },
+    { name: "Doctors", icon: IconUser, activeIcon: IconUserFilled },
+    { name: "Settings", icon: IconSettings, activeIcon: IconSettingsFilled },
   ];
 
   const patients = [
@@ -82,7 +91,7 @@ export default function SchedulePage() {
             <nav className="flex items-center gap-1 bg-[#DDEEF3] p-1 rounded-2xl border border-slate-300/30">
               {menuItems.map((item) => {
                 const isActive = activeTab === item.name;
-                const Icon = item.icon;
+                const Icon = isActive ? item.activeIcon : item.icon;
                 const linkHref = item.name === "Dashboard" ? "/provider/dashboard" : item.name === "Schedule" ? "/provider/schedule" : "#";
                 
                 return (
@@ -101,7 +110,7 @@ export default function SchedulePage() {
                         transition={{ type: "spring", stiffness: 380, damping: 30 }}
                       />
                     )}
-                    <Icon className="w-5 h-5" fill={isActive ? "currentColor" : "none"} />
+                    <Icon className="w-5 h-5" />
                     <span>{item.name}</span>
                   </Link>
                 );
@@ -289,7 +298,7 @@ export default function SchedulePage() {
                           {index === 4 && "Fri"}
                           {index === 5 && "Sat"}
                         </span>
-                        <span className="text-lg font-extrabold mt-0.5">{d.day || d.label}</span>
+                        <span className="text-lg font-extrabold mt-0.5">{d.day}</span>
                       </div>
                     ))}
                   </div>

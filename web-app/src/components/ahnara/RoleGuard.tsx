@@ -3,6 +3,7 @@
 import { useAuth } from "@/components/ahnara/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { AhnaraLoader } from "@/components/ahnara/AhnaraLoader";
 
 export function RoleGuard({ 
   children, 
@@ -29,7 +30,7 @@ export function RoleGuard({
     }
   }, [user, loading, allowedRoles, router, fallbackRoute]);
 
-  if (loading) return <div className="h-screen w-full flex items-center justify-center bg-ahnara-bg-base text-ahnara-text-secondary font-bold">Verifying Access...</div>;
+  if (loading) return <AhnaraLoader fullScreen size="lg" />;
 
   if (!user || !allowedRoles.includes(user.role)) {
     return null; // Will redirect in useEffect

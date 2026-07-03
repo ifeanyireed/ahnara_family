@@ -13,9 +13,9 @@ export const metadata: Metadata = {
   title: "Ahnara Mama",
   description: "Find any business. Anywhere in Nigeria. Discover, book, buy — all in one place.",
   icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
+    icon: "/logo-white.png",
+    shortcut: "/logo-white.png",
+    apple: "/logo-white.png",
   },
 };
 
