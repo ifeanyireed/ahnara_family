@@ -33,13 +33,14 @@ export default function LoginPage() {
       // Mock login simulation with realistic response times
       setTimeout(() => {
         setIsLoading(false);
-        login("mock-token-mama", {
-          id: "mock-mama-id",
+        const role = email.toLowerCase().includes("kids") || email.toLowerCase().includes("pediatric") ? "KIDS" : "MAMA";
+        login(role === "KIDS" ? "mock-token-kids" : "mock-token-mama", {
+          id: role === "KIDS" ? "mock-kids-id" : "mock-mama-id",
           email: email,
-          name: "Jane Doe",
-          role: "MAMA",
+          name: role === "KIDS" ? "Aria's Parent" : "Jane Doe",
+          role: role,
         });
-        router.push("/dashboard");
+        router.push(role === "KIDS" ? "/kids" : "/dashboard");
       }, 1000);
     } catch (err: any) {
       setIsLoading(false);
@@ -47,18 +48,18 @@ export default function LoginPage() {
     }
   };
 
-  const handleQuickLogin = () => {
+  const handleQuickLogin = (role: "MAMA" | "KIDS") => {
     setIsLoading(true);
     setError(null);
     setTimeout(() => {
       setIsLoading(false);
-      login("mock-token-mama", {
-        id: "mock-mama-id",
-        email: "mama@ahnara.com",
-        name: "Jane Doe (Mama)",
-        role: "MAMA",
+      login(role === "KIDS" ? "mock-token-kids" : "mock-token-mama", {
+        id: role === "KIDS" ? "mock-kids-id" : "mock-mama-id",
+        email: role === "KIDS" ? "kids@ahnara.com" : "mama@ahnara.com",
+        name: role === "KIDS" ? "Jane Doe (Kids)" : "Jane Doe (Mama)",
+        role: role,
       });
-      router.push("/dashboard");
+      router.push(role === "KIDS" ? "/kids" : "/dashboard");
     }, 600);
   };
 
@@ -128,13 +129,22 @@ export default function LoginPage() {
           {/* Quick Login Shortcuts */}
           <div className="flex flex-col gap-2.5 pt-2 border-t border-slate-100">
             <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest text-center">Demo Quick Login</span>
-            <button
-              type="button"
-              onClick={handleQuickLogin}
-              className="w-full py-3 px-3 bg-[#E8F3CE]/60 hover:bg-[#E8F3CE]/80 border border-[#CDE0A4]/40 rounded-xl text-[10px] font-black uppercase tracking-wider text-[#608216] transition-colors"
-            >
-              Quick Login
-            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => handleQuickLogin("MAMA")}
+                className="py-3 px-2 bg-[#E8F3CE]/60 hover:bg-[#E8F3CE]/85 border border-[#CDE0A4]/45 rounded-xl text-[10px] font-black uppercase tracking-wider text-[#608216] transition-colors"
+              >
+                Maternal Log In
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickLogin("KIDS")}
+                className="py-3 px-2 bg-[#DDEEF3]/60 hover:bg-[#DDEEF3]/85 border border-sky-200/50 rounded-xl text-[10px] font-black uppercase tracking-wider text-[#0089C1] transition-colors"
+              >
+                Pediatric Log In
+              </button>
+            </div>
           </div>
 
           {/* Footnotes */}

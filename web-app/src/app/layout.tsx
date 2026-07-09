@@ -10,7 +10,7 @@ const dmSans = DM_Sans({ subsets: ["latin"], variable: "--font-dm-sans" });
 const jetbrains = JetBrains_Mono({ subsets: ["latin"], variable: "--font-jetbrains" });
 
 export const metadata: Metadata = {
-  title: "Ahnara Mama",
+  title: "Ahnara Family",
   description: "Find any business. Anywhere in Nigeria. Discover, book, buy — all in one place.",
   icons: {
     icon: "/logo-white.png",

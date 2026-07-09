@@ -15,7 +15,7 @@ export default function HomePage() {
           <div className="w-10 h-10 rounded-full bg-[#D4F475] flex items-center justify-center">
             <img src="/logo.png" alt="Ahnara Logo" className="w-7 h-7 object-contain" />
           </div>
-          <span className="font-extrabold text-xl tracking-tight text-slate-900 text-display">Ahnara Mama</span>
+          <span className="font-extrabold text-xl tracking-tight text-slate-900 text-display">Ahnara Family</span>
         </div>
 
         {/* Mid Navigation Links */}
@@ -75,18 +75,18 @@ export default function HomePage() {
 
           {/* Version Badge */}
           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white rounded-full text-[10px] font-bold text-slate-500 shadow-sm border border-slate-100 uppercase tracking-wider mb-4 relative z-20">
-            Ahnara Mama Portal
+            Ahnara Family Portal
           </div>
 
-          {/* Headline - Aligned to Ahnara Mama */}
+          {/* Headline - Aligned to Ahnara Family */}
           <h1 className="text-4xl md:text-6xl font-normal text-slate-900 tracking-tight text-display mb-4 leading-[1.1] max-w-4xl text-center relative z-20">
-            Maternal Care, Reimagined. <br />
+            Family Care, Reimagined. <br />
             Every Checkpoint, Guided.
           </h1>
 
-          {/* Description - Aligned to Ahnara Mama */}
+          {/* Description - Aligned to Ahnara Family */}
           <p className="text-slate-600 font-semibold text-base md:text-lg mb-6 max-w-2xl text-center leading-relaxed relative z-20">
-            Ahnara Mama empowers mothers with dynamic 40-week gestation timelines, WHO-approved ANC tracking, digital birth planning, and immediate AI midwife support.
+            Ahnara Family empowers parents with dynamic 40-week gestation timelines, child development trackers, WHO-approved clinical insights, and immediate AI support.
           </p>
 
           {/* CTA Buttons */}
@@ -132,7 +132,7 @@ export default function HomePage() {
             <div className="w-full relative bg-[#E8EFF4]">
               <img 
                 src="/UI-screenshot.png" 
-                alt="Ahnara Mama Dashboard Screenshot" 
+                alt="Ahnara Family Dashboard Screenshot" 
                 className="w-full object-cover select-none pointer-events-none"
               />
             </div>
@@ -213,7 +213,7 @@ export default function HomePage() {
               Care Made Clear, Personal, and Easy
             </h2>
             <p className="text-slate-500 font-semibold text-base max-w-xl leading-relaxed">
-              Explore Ahnara Mama's smart, human-centered features — designed to bring clarity, comfort, and confidence to your everyday health journey.
+              Explore Ahnara Family's smart, human-centered features — designed to bring clarity, comfort, and confidence to your everyday family health journey.
             </p>
           </div>
 
@@ -320,10 +320,10 @@ export default function HomePage() {
               <div className="w-9 h-9 rounded-full bg-[#D4F475] flex items-center justify-center border border-[#CDE0A4]">
                 <img src="/logo.png" alt="Logo" className="w-6 h-6 object-contain" />
               </div>
-              <span className="font-extrabold text-lg text-slate-900 tracking-tight text-display">Ahnara Mama</span>
+              <span className="font-extrabold text-lg text-slate-900 tracking-tight text-display">Ahnara Family</span>
             </div>
             <p className="text-xs leading-relaxed max-w-sm font-semibold">
-              Empowering maternal health journeys with WHO clinical insights, personalized timelines, digital birth planning, and direct midwifery coordination.
+              Empowering maternal and pediatric health journeys with WHO clinical insights, personalized timelines, child development tracking, and direct care coordination.
             </p>
           </div>
 

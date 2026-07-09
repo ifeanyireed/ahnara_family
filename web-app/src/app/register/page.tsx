@@ -39,11 +39,12 @@ export default function RegisterPage() {
       // Mock registration fallback
       setTimeout(() => {
         setIsLoading(false);
+        const role = email.toLowerCase().includes("kids") || email.toLowerCase().includes("pediatric") ? "KIDS" : "MAMA";
         login("mock-token-reg", {
           id: "mock-reg-id",
           email: email,
           name: name,
-          role: "MAMA",
+          role: role,
         });
         router.push("/onboarding");
       }, 1000);
@@ -53,7 +54,7 @@ export default function RegisterPage() {
     }
   };
 
-  const handleQuickRegister = () => {
+  const handleQuickRegister = (role: "MAMA" | "KIDS") => {
     setIsLoading(true);
     setError(null);
     setTimeout(() => {
@@ -61,9 +62,9 @@ export default function RegisterPage() {
       const randomId = Math.floor(Math.random() * 1000);
       login("mock-token-quick-reg", {
         id: `mock-${randomId}`,
-        email: `mama${randomId}@ahnara.com`,
-        name: "Jane Doe",
-        role: "MAMA",
+        email: role === "KIDS" ? `kids${randomId}@ahnara.com` : `mama${randomId}@ahnara.com`,
+        name: role === "KIDS" ? "Jane Doe (Kids)" : "Jane Doe (Mama)",
+        role: role,
       });
       router.push("/onboarding");
     }, 600);
@@ -153,13 +154,22 @@ export default function RegisterPage() {
           {/* Quick Register Shortcuts */}
           <div className="flex flex-col gap-2.5 pt-2 border-t border-slate-100">
             <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest text-center">Demo Quick Register</span>
-            <button
-              type="button"
-              onClick={handleQuickRegister}
-              className="w-full py-3 px-3 bg-[#E8F3CE]/60 hover:bg-[#E8F3CE]/80 border border-[#CDE0A4]/40 rounded-xl text-[10px] font-black uppercase tracking-wider text-[#608216] transition-colors"
-            >
-              Quick Register
-            </button>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => handleQuickRegister("MAMA")}
+                className="py-3 px-2 bg-[#E8F3CE]/60 hover:bg-[#E8F3CE]/85 border border-[#CDE0A4]/45 rounded-xl text-[10px] font-black uppercase tracking-wider text-[#608216] transition-colors"
+              >
+                Maternal Reg
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickRegister("KIDS")}
+                className="py-3 px-2 bg-[#DDEEF3]/60 hover:bg-[#DDEEF3]/85 border border-sky-200/50 rounded-xl text-[10px] font-black uppercase tracking-wider text-[#0089C1] transition-colors"
+              >
+                Pediatric Reg
+              </button>
+            </div>
           </div>
 
           {/* Footnotes */}
