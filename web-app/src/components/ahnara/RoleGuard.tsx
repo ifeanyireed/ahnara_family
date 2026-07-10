@@ -25,7 +25,9 @@ export function RoleGuard({
         // Redirect to appropriate dashboard based on role
         if (user.role === "ADMIN" || user.role === "OPS") router.push("/ops/assignments");
         else if (user.role === "TECHNICIAN") router.push("/tech/dashboard");
-        else router.push("/dashboard");
+        else if (user.role === "KIDS") router.push("/kids");
+        else if (user.role === "SENIORS") router.push("/seniors");
+        else router.push("/mama/dashboard");
       }
     }
   }, [user, loading, allowedRoles, router, fallbackRoute]);

@@ -33,14 +33,62 @@ export default function LoginPage() {
       // Mock login simulation with realistic response times
       setTimeout(() => {
         setIsLoading(false);
-        const role = email.toLowerCase().includes("kids") || email.toLowerCase().includes("pediatric") ? "KIDS" : "MAMA";
-        login(role === "KIDS" ? "mock-token-kids" : "mock-token-mama", {
-          id: role === "KIDS" ? "mock-kids-id" : "mock-mama-id",
-          email: email,
-          name: role === "KIDS" ? "Aria's Parent" : "Jane Doe",
-          role: role,
-        });
-        router.push(role === "KIDS" ? "/kids" : "/dashboard");
+        let role = "MAMA";
+        if (email.toLowerCase().includes("kids") || email.toLowerCase().includes("pediatric")) {
+          role = "KIDS";
+        } else if (email.toLowerCase().includes("senior") || email.toLowerCase().includes("elder")) {
+          role = "SENIORS";
+        } else if (email.toLowerCase().includes("lady") || email.toLowerCase().includes("clara")) {
+          role = "LADY";
+        } else if (email.toLowerCase().includes("girlie") || email.toLowerCase().includes("teen")) {
+          role = "GIRLIE";
+        }
+        login(
+          role === "KIDS" 
+            ? "mock-token-kids" 
+            : role === "SENIORS" 
+            ? "mock-token-seniors" 
+            : role === "LADY" 
+            ? "mock-token-lady" 
+            : role === "GIRLIE" 
+            ? "mock-token-girlie" 
+            : "mock-token-mama", 
+          {
+            id: 
+              role === "KIDS" 
+                ? "mock-kids-id" 
+                : role === "SENIORS" 
+                ? "mock-seniors-id" 
+                : role === "LADY" 
+                ? "mock-lady-id" 
+                : role === "GIRLIE" 
+                ? "mock-girlie-id" 
+                : "mock-mama-id",
+            email: email,
+            name: 
+              role === "KIDS" 
+                ? "Aria's Parent" 
+                : role === "SENIORS" 
+                ? "Grandma Margaret" 
+                : role === "LADY" 
+                ? "Clara Reed" 
+                : role === "GIRLIE" 
+                ? "Jane Doe (Girlie)" 
+                : "Jane Doe",
+            role: role,
+          }
+        );
+        router.push(
+          role === "KIDS" 
+            ? "/kids" 
+            : role === "SENIORS" 
+            ? "/seniors" 
+            : role === "LADY" 
+            ? "/lady" 
+            : role === "GIRLIE" 
+            ? "/girlie" 
+            : "/mama/dashboard"
+        );
       }, 1000);
     } catch (err: any) {
       setIsLoading(false);
@@ -48,18 +96,66 @@ export default function LoginPage() {
     }
   };
 
-  const handleQuickLogin = (role: "MAMA" | "KIDS") => {
+  const handleQuickLogin = (role: "MAMA" | "KIDS" | "SENIORS" | "LADY" | "GIRLIE") => {
     setIsLoading(true);
     setError(null);
     setTimeout(() => {
       setIsLoading(false);
-      login(role === "KIDS" ? "mock-token-kids" : "mock-token-mama", {
-        id: role === "KIDS" ? "mock-kids-id" : "mock-mama-id",
-        email: role === "KIDS" ? "kids@ahnara.com" : "mama@ahnara.com",
-        name: role === "KIDS" ? "Jane Doe (Kids)" : "Jane Doe (Mama)",
-        role: role,
-      });
-      router.push(role === "KIDS" ? "/kids" : "/dashboard");
+      login(
+        role === "KIDS" 
+          ? "mock-token-kids" 
+          : role === "SENIORS" 
+          ? "mock-token-seniors" 
+          : role === "LADY" 
+          ? "mock-token-lady" 
+          : role === "GIRLIE" 
+          ? "mock-token-girlie" 
+          : "mock-token-mama",
+        {
+          id: 
+            role === "KIDS" 
+              ? "mock-kids-id" 
+              : role === "SENIORS" 
+              ? "mock-seniors-id" 
+              : role === "LADY" 
+              ? "mock-lady-id" 
+              : role === "GIRLIE" 
+              ? "mock-girlie-id" 
+              : "mock-mama-id",
+          email: 
+            role === "KIDS" 
+              ? "kids@ahnara.com" 
+              : role === "SENIORS" 
+              ? "seniors@ahnara.com" 
+              : role === "LADY" 
+              ? "clara@ahnara.com" 
+              : role === "GIRLIE" 
+              ? "girlie@ahnara.com" 
+              : "mama@ahnara.com",
+          name: 
+            role === "KIDS" 
+              ? "Jane Doe (Kids)" 
+              : role === "SENIORS" 
+              ? "Grandma Margaret" 
+              : role === "LADY" 
+              ? "Clara Reed" 
+              : role === "GIRLIE" 
+              ? "Jane Doe (Girlie)" 
+              : "Jane Doe (Mama)",
+          role: role,
+        }
+      );
+      router.push(
+        role === "KIDS" 
+          ? "/kids" 
+          : role === "SENIORS" 
+          ? "/seniors" 
+          : role === "LADY" 
+          ? "/lady" 
+          : role === "GIRLIE" 
+          ? "/girlie" 
+          : "/mama/dashboard"
+      );
     }, 600);
   };
 
@@ -129,20 +225,41 @@ export default function LoginPage() {
           {/* Quick Login Shortcuts */}
           <div className="flex flex-col gap-2.5 pt-2 border-t border-slate-100">
             <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest text-center">Demo Quick Login</span>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-5 gap-1">
               <button
                 type="button"
                 onClick={() => handleQuickLogin("MAMA")}
-                className="py-3 px-2 bg-[#E8F3CE]/60 hover:bg-[#E8F3CE]/85 border border-[#CDE0A4]/45 rounded-xl text-[10px] font-black uppercase tracking-wider text-[#608216] transition-colors"
+                className="py-3 px-0.5 bg-[#E8F3CE]/60 hover:bg-[#E8F3CE]/85 border border-[#CDE0A4]/45 rounded-xl text-[8px] font-black uppercase tracking-wider text-[#608216] transition-colors text-center"
               >
-                Maternal Log In
+                Maternal
               </button>
               <button
                 type="button"
                 onClick={() => handleQuickLogin("KIDS")}
-                className="py-3 px-2 bg-[#DDEEF3]/60 hover:bg-[#DDEEF3]/85 border border-sky-200/50 rounded-xl text-[10px] font-black uppercase tracking-wider text-[#0089C1] transition-colors"
+                className="py-3 px-0.5 bg-[#DDEEF3]/60 hover:bg-[#DDEEF3]/85 border border-sky-200/50 rounded-xl text-[8px] font-black uppercase tracking-wider text-[#0089C1] transition-colors text-center"
               >
-                Pediatric Log In
+                Pediatric
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickLogin("SENIORS")}
+                className="py-3 px-0.5 bg-indigo-50 hover:bg-indigo-100/80 border border-indigo-200/50 rounded-xl text-[8px] font-black uppercase tracking-wider text-indigo-700 transition-colors text-center"
+              >
+                Seniors
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickLogin("LADY")}
+                className="py-3 px-0.5 bg-rose-50 hover:bg-rose-100/80 border border-rose-200/50 rounded-xl text-[8px] font-black uppercase tracking-wider text-rose-700 transition-colors text-center"
+              >
+                Lady
+              </button>
+              <button
+                type="button"
+                onClick={() => handleQuickLogin("GIRLIE")}
+                className="py-3 px-0.5 bg-pink-50 hover:bg-pink-100/80 border border-pink-200/50 rounded-xl text-[8px] font-black uppercase tracking-wider text-pink-700 transition-colors text-center"
+              >
+                Girlie
               </button>
             </div>
           </div>

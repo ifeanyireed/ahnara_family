@@ -16,7 +16,8 @@ import {
   IconSparkles,
   IconActivity,
   IconUser,
-  IconMoodSmile
+  IconMoodSmile,
+  IconFlame
 } from "@tabler/icons-react";
 import { AhnaraCard } from "@/components/ahnara/AhnaraCard";
 import { AhnaraButton } from "@/components/ahnara/AhnaraButton";
@@ -44,7 +45,7 @@ export default function OnboardingPage() {
   const { user, login } = useAuth();
 
   // Step 0: Profile Type selection
-  const [profileType, setProfileType] = useState<"maternal" | "pediatric" | null>(null);
+  const [profileType, setProfileType] = useState<"maternal" | "pediatric" | "seniors" | "lady" | "girlie" | null>(null);
   const [currentStep, setCurrentStep] = useState(0); // 0 = Profile Selection, 1, 2, 3 = steps
   
   // ==========================================
@@ -97,6 +98,66 @@ export default function OnboardingPage() {
   });
 
   // ==========================================
+  // SENIORS FLOW STATE
+  // ==========================================
+  const [elderName, setElderName] = useState("");
+  const [elderDob, setElderDob] = useState("");
+  const [elderMobility, setElderMobility] = useState<"independent" | "assisted" | "wheelchair">("independent");
+  const [elderLanguage, setElderLanguage] = useState("English");
+  const [elderAids, setElderAids] = useState({
+    hearing: false,
+    visual: false,
+    mobility: false,
+  });
+  
+  // ADL Checklist (Activities of Daily Living)
+  const [adlChecks, setAdlChecks] = useState({
+    bathing: true,
+    dressing: true,
+    toileting: true,
+    transferring: true,
+    feeding: true,
+    continence: true,
+  });
+  
+  const [elderRisks, setElderRisks] = useState({
+    dementia: false,
+    cardiovascular: false,
+    diabetes: false,
+    allergies: false,
+    hypertension: false,
+  });
+  
+  const [elderPartnerCode, setElderPartnerCode] = useState("");
+  const [elderIsSynced, setElderIsSynced] = useState(false);
+  const [voiceConsentLogged, setVoiceConsentLogged] = useState(false);
+
+  // LADY FLOW STATE
+  const [ladyName, setLadyName] = useState("Clara Reed");
+  const [ladyDob, setLadyDob] = useState("");
+  const [ladyCycleLength, setLadyCycleLength] = useState("28");
+  const [ladyContraception, setLadyContraception] = useState("none");
+  const [ladyLastPeriod, setLadyLastPeriod] = useState("");
+  const [ladyLastSmear, setLadyLastSmear] = useState("");
+  const [ladyHpvDoses, setLadyHpvDoses] = useState("2");
+  const [ladySymptoms, setLadySymptoms] = useState<Record<string, boolean>>({
+    cramps: false,
+    bloating: false,
+    fatigue: false,
+    breakouts: false
+  });
+  const [ladyVaultConsent, setLadyVaultConsent] = useState(true);
+  // GIRLIE FLOW STATE
+  const [girlieName, setGirlieName] = useState("Jane Doe");
+  const [girlieAge, setGirlieAge] = useState("14");
+  const [girlieFirstPeriod, setGirlieFirstPeriod] = useState(true);
+  const [girlieHeightGrowth, setGirlieHeightGrowth] = useState(true);
+  const [girliePinEnabled, setGirliePinEnabled] = useState(true);
+  const [girliePinCode, setGirliePinCode] = useState("4892");
+  const [girlieParentCode, setGirlieParentCode] = useState("");
+  const [girlieParentSynced, setGirlieParentSynced] = useState(false);
+
+  // ==========================================
   // INITIALIZATIONS
   // ==========================================
   useEffect(() => {
@@ -106,6 +167,9 @@ export default function OnboardingPage() {
 
     const codeP = "NARA-KIDS-" + Math.floor(100 + Math.random() * 900) + "-" + Math.floor(100 + Math.random() * 900);
     setPediatricPartnerCode(codeP);
+
+    const codeS = "NARA-SR-" + Math.floor(100 + Math.random() * 900) + "-" + Math.floor(100 + Math.random() * 900);
+    setElderPartnerCode(codeS);
     
     // Set default dates
     const defaultMaternalDate = new Date();
@@ -121,6 +185,13 @@ export default function OnboardingPage() {
     const mmP = String(defaultPedDate.getMonth() + 1).padStart(2, '0');
     const ddP = String(defaultPedDate.getDate()).padStart(2, '0');
     setChildDob(`${yyyyP}-${mmP}-${ddP}`);
+
+    const defaultElderDate = new Date();
+    defaultElderDate.setFullYear(defaultElderDate.getFullYear() - 72); // 72 years ago
+    const yyyyS = defaultElderDate.getFullYear();
+    const mmS = String(defaultElderDate.getMonth() + 1).padStart(2, '0');
+    const ddS = String(defaultElderDate.getDate()).padStart(2, '0');
+    setElderDob(`${yyyyS}-${mmS}-${ddS}`);
     
     setMamaRecordSync("MAMA-849-204");
   }, []);
@@ -131,6 +202,12 @@ export default function OnboardingPage() {
       setProfileType("pediatric");
     } else if (user?.role === "MAMA") {
       setProfileType("maternal");
+    } else if (user?.role === "SENIORS") {
+      setProfileType("seniors");
+    } else if (user?.role === "LADY") {
+      setProfileType("lady");
+    } else if (user?.role === "GIRLIE") {
+      setProfileType("girlie");
     }
   }, [user]);
 
@@ -186,8 +263,21 @@ export default function OnboardingPage() {
     setPediatricRisks(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const toggleElderRisk = (key: keyof typeof elderRisks) => {
+    setElderRisks(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const toggleAdlCheck = (key: keyof typeof adlChecks) => {
+    setAdlChecks(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const toggleElderAid = (key: keyof typeof elderAids) => {
+    setElderAids(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
   const hasAnyMaternalRisk = Object.values(maternalRisks).some(v => v);
   const hasAnyPediatricRisk = Object.values(pediatricRisks).some(v => v) || Number(childWeight) < 2500 || apgarScore < 7;
+  const hasAnyElderRisk = Object.values(elderRisks).some(v => v) || !Object.values(adlChecks).every(v => v);
 
   const handleNext = () => {
     if (currentStep === 0) {
@@ -204,7 +294,7 @@ export default function OnboardingPage() {
         alert("Please enter a valid Last Menstrual Period (LMP) date to calculate your gestation.");
         return;
       }
-    } else {
+    } else if (profileType === "pediatric") {
       if (currentStep === 1) {
         if (!childName.trim()) {
           alert("Please enter the child's full name.");
@@ -220,6 +310,44 @@ export default function OnboardingPage() {
           return;
         }
       }
+    } else if (profileType === "lady") {
+      if (currentStep === 1) {
+        if (!ladyName.trim()) {
+          alert("Please enter your full name.");
+          return;
+        }
+        if (!ladyDob) {
+          alert("Please select your date of birth.");
+          return;
+        }
+        if (Number(ladyCycleLength) < 15 || Number(ladyCycleLength) > 50) {
+          alert("Cycle length must be between 15 and 50 days.");
+          return;
+        }
+      }
+    } else if (profileType === "seniors") {
+      if (currentStep === 1) {
+        if (!elderName.trim()) {
+          alert("Please enter the elder's full name.");
+          return;
+        }
+        if (!elderDob) {
+          alert("Please select the elder's date of birth.");
+          return;
+        }
+        const selectedDob = new Date(elderDob);
+        if (selectedDob > new Date()) {
+          alert("Date of birth cannot be in the future.");
+          return;
+        }
+      }
+    } else if (profileType === "girlie") {
+      if (currentStep === 1) {
+        if (!girlieName.trim()) {
+          alert("Please enter your name.");
+          return;
+        }
+      }
     }
     setCurrentStep(prev => prev + 1);
   };
@@ -230,7 +358,7 @@ export default function OnboardingPage() {
 
   const handleComplete = () => {
     // Dynamically update the user's role in global context
-    const updatedRole = profileType === "maternal" ? "MAMA" : "KIDS";
+    const updatedRole = profileType === "maternal" ? "MAMA" : profileType === "pediatric" ? "KIDS" : profileType === "lady" ? "LADY" : profileType === "girlie" ? "GIRLIE" : "SENIORS";
     if (user) {
       const token = getAuthToken() || "mock-token";
       login(token, {
@@ -256,8 +384,8 @@ export default function OnboardingPage() {
       };
       
       localStorage.setItem("mama_gestation_data", JSON.stringify(onboardingData));
-      router.push("/dashboard");
-    } else {
+      router.push("/mama/dashboard");
+    } else if (profileType === "pediatric") {
       const onboardingData = {
         childName,
         dob: childDob,
@@ -288,6 +416,57 @@ export default function OnboardingPage() {
       
       localStorage.setItem("kids_profile_data", JSON.stringify(onboardingData));
       router.push("/kids");
+    } else if (profileType === "lady") {
+      const onboardingData = {
+        name: ladyName || "Clara Reed",
+        dob: ladyDob,
+        cycleLength: Number(ladyCycleLength),
+        contraception: ladyContraception,
+        lastPeriod: ladyLastPeriod,
+        lastSmearDate: ladyLastSmear,
+        hpvDoses: Number(ladyHpvDoses),
+        symptoms: ladySymptoms,
+        vaultConsent: ladyVaultConsent,
+        setupCompleted: true,
+        activePhase: "Luteal Phase",
+        dayInCycle: 22,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem("lady_profile_data", JSON.stringify(onboardingData));
+      router.push("/lady");
+    } else if (profileType === "girlie") {
+      const onboardingData = {
+        name: girlieName || "Jane Doe",
+        age: Number(girlieAge),
+        firstPeriod: girlieFirstPeriod,
+        heightGrowth: girlieHeightGrowth,
+        pinCode: girliePinCode,
+        parentCode: girlieParentCode,
+        parentSynced: girlieParentSynced,
+        setupCompleted: true,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem("girlie_profile_data", JSON.stringify(onboardingData));
+      router.push("/girlie");
+    } else {
+      const onboardingData = {
+        elderName,
+        dob: elderDob,
+        mobility: elderMobility,
+        language: elderLanguage,
+        aids: elderAids,
+        adl: adlChecks,
+        risks: elderRisks,
+        riskLevel: hasAnyElderRisk ? "high" : "low",
+        partnerCode: elderPartnerCode,
+        partnerSynced: elderIsSynced,
+        voiceConsentLogged,
+        setupCompleted: true,
+        timestamp: new Date().toISOString()
+      };
+      
+      localStorage.setItem("seniors_profile_data", JSON.stringify(onboardingData));
+      router.push("/seniors");
     }
   };
 
@@ -324,7 +503,7 @@ export default function OnboardingPage() {
                       currentStep === step 
                         ? "bg-[#1E293B] text-white ring-4 ring-slate-200"
                         : currentStep > step 
-                        ? "bg-[#8BB436] text-white"
+                        ? (profileType === "maternal" ? "bg-[#8BB436]" : profileType === "pediatric" ? "bg-[#0089C1]" : profileType === "lady" ? "bg-rose-500" : profileType === "girlie" ? "bg-pink-500" : "bg-indigo-600") + " text-white"
                         : "bg-slate-100 text-slate-400 border border-slate-200"
                     }`}
                   >
@@ -339,18 +518,32 @@ export default function OnboardingPage() {
                         {step === 2 && "Risk Check"}
                         {step === 3 && "NARA Link"}
                       </>
-                    ) : (
+                    ) : profileType === "pediatric" ? (
                       <>
                         {step === 1 && "Basic Info"}
                         {step === 2 && "Birth Metrics"}
                         {step === 3 && "EHR Link & Risks"}
+                      </>
+                    ) : profileType === "lady" ? (
+                      <>
+                        {step === 1 && "Lady Profile"}
+                        {step === 2 && "Screenings"}
+                        {step === 3 && "Clinical Vault"}
+                      </>
+                    ) : (
+                      <>
+                        {step === 1 && "Geriatric Info"}
+                        {step === 2 && "ADL & Risks"}
+                        {step === 3 && "Care Sync"}
                       </>
                     )}
                   </span>
                 </div>
                 {step < 3 && (
                   <div className={`flex-1 h-0.5 mx-4 rounded-full transition-all duration-300 ${
-                    currentStep > step ? "bg-[#8BB436]" : "bg-slate-100"
+                    currentStep > step 
+                      ? (profileType === "maternal" ? "bg-[#8BB436]" : profileType === "pediatric" ? "bg-[#0089C1]" : profileType === "lady" ? "bg-rose-500" : profileType === "girlie" ? "bg-pink-500" : "bg-indigo-600") 
+                      : "bg-slate-100"
                   }`} />
                 )}
               </React.Fragment>
@@ -419,6 +612,72 @@ export default function OnboardingPage() {
                       <h3 className="font-extrabold text-slate-900 text-base leading-tight">Pediatric Care</h3>
                       <p className="text-xs text-slate-500 font-semibold mt-1.5 leading-relaxed">
                         Child health profiling, birth measurements, immunization calendars, developmental milestones, and pediatrician consults.
+                      </p>
+                    </div>
+                  </button>
+
+                  {/* Seniors Card */}
+                  <button
+                    onClick={() => setProfileType("seniors")}
+                    className={`p-6 rounded-2xl border text-left flex flex-col gap-4 transition-all duration-300 ${
+                      profileType === "seniors"
+                        ? "bg-indigo-50 border-indigo-250 ring-2 ring-indigo-600"
+                        : "bg-slate-50/50 border-slate-200 hover:bg-slate-50 hover:border-slate-350"
+                    }`}
+                  >
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                      profileType === "seniors" ? "bg-indigo-600 text-white" : "bg-slate-200 text-slate-500"
+                    }`}>
+                      <IconActivity className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-extrabold text-slate-900 text-base leading-tight">Seniors Care</h3>
+                      <p className="text-xs text-slate-500 font-semibold mt-1.5 leading-relaxed">
+                        Elder safety monitoring, daily wellness check-ins, Activities of Daily Living (ADL) indexing, and Scam Shield fraud alerts.
+                      </p>
+                    </div>
+                  </button>
+
+                  {/* Lady Card */}
+                  <button
+                    onClick={() => setProfileType("lady")}
+                    className={`p-6 rounded-2xl border text-left flex flex-col gap-4 transition-all duration-300 ${
+                      profileType === "lady"
+                        ? "bg-rose-50 border-rose-250 ring-2 ring-rose-500"
+                        : "bg-slate-50/50 border-slate-200 hover:bg-slate-50 hover:border-slate-350"
+                    }`}
+                  >
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                      profileType === "lady" ? "bg-rose-500 text-white" : "bg-slate-200 text-slate-500"
+                    }`}>
+                      <IconFlame className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-extrabold text-slate-900 text-base leading-tight">Lady Care</h3>
+                      <p className="text-xs text-slate-500 font-semibold mt-1.5 leading-relaxed">
+                        Reproductive wellness tracking, basal body temperature logs, preventative screening calendars, and pelvic floor exercises.
+                      </p>
+                    </div>
+                  </button>
+
+                  {/* Girlie Card */}
+                  <button
+                    onClick={() => setProfileType("girlie")}
+                    className={`p-6 rounded-2xl border text-left flex flex-col gap-4 transition-all duration-300 ${
+                      profileType === "girlie"
+                        ? "bg-pink-50 border-pink-250 ring-2 ring-pink-500"
+                        : "bg-slate-50/50 border-slate-200 hover:bg-slate-50 hover:border-slate-350"
+                    }`}
+                  >
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                      profileType === "girlie" ? "bg-pink-500 text-white" : "bg-slate-200 text-slate-500"
+                    }`}>
+                      <IconMoodSmile className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-extrabold text-slate-900 text-base leading-tight">Girlie Care</h3>
+                      <p className="text-xs text-slate-500 font-semibold mt-1.5 leading-relaxed">
+                        Puberty milestone logs, menstrual cycle predictors, acne checkboards, digital safety quizzes, and parent sync links.
                       </p>
                     </div>
                   </button>
@@ -968,6 +1227,651 @@ export default function OnboardingPage() {
               </motion.div>
             )}
 
+            {/* ========================================== */}
+            {/* SENIORS FLOW SCREENS */}
+            {/* ========================================== */}
+            {profileType === "seniors" && currentStep === 1 && (
+              <motion.div
+                key="sStep1"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                className="flex flex-col gap-5"
+              >
+                <div className="text-left">
+                  <h2 className="text-xl font-bold text-slate-900 tracking-tight text-display">Geriatric Setup</h2>
+                  <p className="text-sm text-slate-500 font-semibold mt-1">
+                    Set up an profile for an elder user or aging parent.
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-4 text-left">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Elder's Full Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={elderName}
+                      onChange={(e) => setElderName(e.target.value)}
+                      placeholder="e.g. Margaret Dhillon"
+                      className="w-full bg-[#F1F5F9]/50 border border-slate-200 rounded-xl py-2.5 px-3 text-sm outline-none focus:bg-white font-semibold text-slate-800"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Date of Birth</label>
+                      <input
+                        type="date"
+                        required
+                        value={elderDob}
+                        onChange={(e) => setElderDob(e.target.value)}
+                        className="w-full bg-[#F1F5F9]/50 border border-slate-200 rounded-xl py-2.5 px-3 text-sm outline-none focus:bg-white font-semibold text-slate-800"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Primary Language</label>
+                      <input
+                        type="text"
+                        value={elderLanguage}
+                        onChange={(e) => setElderLanguage(e.target.value)}
+                        placeholder="e.g. English, Yoruba"
+                        className="w-full bg-[#F1F5F9]/50 border border-slate-200 rounded-xl py-2.5 px-3 text-sm outline-none focus:bg-white font-semibold text-slate-800"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Mobility Baseline Level</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { value: "independent", label: "Independent" },
+                        { value: "assisted", label: "Assisted Walk" },
+                        { value: "wheelchair", label: "Wheelchair" }
+                      ].map((item) => (
+                        <button
+                          key={item.value}
+                          type="button"
+                          onClick={() => setElderMobility(item.value as any)}
+                          className={`py-3.5 px-2 rounded-xl border text-xs font-bold transition-all text-center ${
+                            elderMobility === item.value
+                              ? "bg-indigo-50 border-indigo-300 text-indigo-700 ring-1 ring-indigo-500"
+                              : "bg-slate-50 border-slate-200 hover:bg-slate-50 text-slate-600"
+                          }`}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sensory / Mobility Aids</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { key: "hearing", label: "Hearing Aid" },
+                        { key: "visual", label: "Visual Glasses" },
+                        { key: "mobility", label: "Cane / Walker" }
+                      ].map((aid) => (
+                        <button
+                          key={aid.key}
+                          type="button"
+                          onClick={() => setElderAids(prev => ({ ...prev, [aid.key]: !prev[aid.key as keyof typeof elderAids] }))}
+                          className={`py-3 px-2 rounded-xl border text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                            elderAids[aid.key as keyof typeof elderAids]
+                              ? "bg-indigo-50 border-indigo-200 text-indigo-700"
+                              : "bg-slate-50 border-slate-200 text-slate-500"
+                          }`}
+                        >
+                          <div className={`w-3.5 h-3.5 rounded flex items-center justify-center transition-all ${
+                            elderAids[aid.key as keyof typeof elderAids] ? "bg-indigo-600 text-white" : "border border-slate-300 bg-white"
+                          }`}>
+                            {elderAids[aid.key as keyof typeof elderAids] && <IconCheck className="w-2.5 h-2.5" />}
+                          </div>
+                          <span>{aid.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                </div>
+              </motion.div>
+            )}
+
+            {profileType === "seniors" && currentStep === 2 && (
+              <motion.div
+                key="sStep2"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                className="flex flex-col gap-5 text-left"
+              >
+                <div className="text-left">
+                  <h2 className="text-xl font-bold text-slate-900 tracking-tight text-display">ADL &amp; Critical Risks</h2>
+                  <p className="text-sm text-slate-500 font-semibold mt-1">
+                    Complete activities of daily living index and check medical flags.
+                  </p>
+                </div>
+
+                {/* ADL Checklist */}
+                <div className="flex flex-col gap-2">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Activities of Daily Living (ADL) Checklist</span>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {[
+                      { key: "bathing", label: "1. Bathing Self" },
+                      { key: "dressing", label: "2. Dressing Self" },
+                      { key: "toileting", label: "3. Toileting" },
+                      { key: "transferring", label: "4. Moving/Transfer" },
+                      { key: "feeding", label: "5. Feeding Self" },
+                      { key: "continence", label: "6. Continence" }
+                    ].map((item) => (
+                      <button
+                        key={item.key}
+                        type="button"
+                        onClick={() => toggleAdlCheck(item.key as any)}
+                        className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition-all ${
+                          adlChecks[item.key as keyof typeof adlChecks]
+                            ? "bg-emerald-50/60 border-emerald-200 text-emerald-800"
+                            : "bg-rose-50/50 border-rose-200 text-rose-700"
+                        }`}
+                      >
+                        <div className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center transition-all ${
+                          adlChecks[item.key as keyof typeof adlChecks]
+                            ? "bg-emerald-600 text-white"
+                            : "bg-rose-600 text-white"
+                        }`}>
+                          {adlChecks[item.key as keyof typeof adlChecks] ? <IconCheck className="w-3 h-3" /> : <IconCheck className="w-3 h-3 opacity-0" />}
+                        </div>
+                        <span className="text-xs font-bold leading-none">{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Critical Diagnoses */}
+                <div className="flex flex-col gap-2">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Critical Diagnostic Flags</span>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                    {[
+                      { key: "dementia", label: "Cognitive/Dementia" },
+                      { key: "cardiovascular", label: "Cardiovascular" },
+                      { key: "diabetes", label: "Diabetes" },
+                      { key: "hypertension", label: "Hypertension" },
+                      { key: "allergies", label: "Critical Allergies" }
+                    ].map((item) => (
+                      <button
+                        key={item.key}
+                        type="button"
+                        onClick={() => toggleElderRisk(item.key as any)}
+                        className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition-all ${
+                          elderRisks[item.key as keyof typeof elderRisks]
+                            ? "bg-indigo-50 border-indigo-200 text-indigo-800 font-bold"
+                            : "bg-slate-50 border-slate-200 hover:bg-slate-100/50 text-slate-600"
+                        }`}
+                      >
+                        <div className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center transition-all ${
+                          elderRisks[item.key as keyof typeof elderRisks]
+                            ? "bg-indigo-600 text-white"
+                            : "border border-slate-350 bg-white"
+                        }`}>
+                          {elderRisks[item.key as keyof typeof elderRisks] && <IconCheck className="w-3 h-3" />}
+                        </div>
+                        <span className="text-xs font-bold leading-none">{item.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Risk outcome */}
+                <div className="mt-1">
+                  {hasAnyElderRisk ? (
+                    <div className="bg-orange-50 border border-orange-200/80 rounded-2xl p-4 flex items-start gap-3">
+                      <IconAlertTriangle className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <span className="text-xs font-bold text-orange-800 uppercase tracking-wide">High Care Requirements Detected</span>
+                        <p className="text-[10px] text-orange-700 font-semibold mt-1 leading-normal">
+                          Medical history flags or ADL limitations detected. Ambient fall checking is active, and home care visit suggestions will be prioritized on dashboard.
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-emerald-50 border border-emerald-200/80 rounded-2xl p-4 flex items-start gap-3">
+                      <IconShieldCheck className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <span className="text-xs font-bold text-emerald-800 uppercase tracking-wide">Ambient Safety Mapped</span>
+                        <p className="text-[10px] text-emerald-700 font-semibold mt-1 leading-normal">
+                          Elder user is independent in all ADLs. Daily wellbeing hubs and cognitive puzzles will be set as standard features.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {profileType === "seniors" && currentStep === 3 && (
+              <motion.div
+                key="sStep3"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                className="flex flex-col gap-6 text-left"
+              >
+                <div className="text-left">
+                  <h2 className="text-xl font-bold text-slate-900 tracking-tight text-display">Care Sync &amp; Authorization</h2>
+                  <p className="text-sm text-slate-500 font-semibold mt-1">
+                    Connect caregiver networks and log voice consent baseline.
+                  </p>
+                </div>
+
+                {/* Primary Caregiver Sync */}
+                <div className="flex flex-col md:flex-row items-center gap-6 bg-slate-50 border border-slate-200 p-5 rounded-2xl">
+                  <div className="relative bg-white p-3 rounded-2xl border border-slate-200 shadow-xs flex flex-col items-center">
+                    <div className="w-24 h-24 flex items-center justify-center bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                      <IconQrcode className="w-14 h-14 text-indigo-600 opacity-75 animate-pulse" />
+                    </div>
+                    <span className="text-[8px] text-slate-400 font-black tracking-widest mt-1.5 uppercase">Sync Link</span>
+                  </div>
+
+                  <div className="flex-1">
+                    <span className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">Trusted Circle Sync ID</span>
+                    <input
+                      type="text"
+                      value={elderPartnerCode}
+                      onChange={(e) => setElderPartnerCode(e.target.value)}
+                      placeholder="e.g. NARA-SR-809-122"
+                      className="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 text-xs outline-none focus:ring-2 focus:ring-slate-900/10 font-mono font-bold mt-1 text-slate-800"
+                    />
+                    <p className="text-[10px] text-slate-500 font-semibold mt-2.5 leading-normal">
+                      Share this code with your adult children to link accounts. They will see step logs, medication heatmap, and receive scam alerts.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Voice Signature Consent */}
+                <div className="flex flex-col gap-2.5 p-5 bg-indigo-50/50 border border-indigo-100 rounded-2xl">
+                  <div className="flex items-center gap-2">
+                    <IconActivity className="w-5 h-5 text-indigo-600" />
+                    <h4 className="text-xs font-black text-slate-800 uppercase tracking-wide">Voice Signature Consent</h4>
+                  </div>
+                  <p className="text-[10px] text-slate-500 font-semibold leading-relaxed">
+                    Ahnara Seniors checks cognitive speech velocity and memory patterns using daily voice companion responses. Please toggle below to confirm elder consent.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setVoiceConsentLogged(prev => !prev)}
+                    className={`mt-2 py-3 px-4 rounded-xl border text-xs font-bold flex items-center justify-between transition-all ${
+                      voiceConsentLogged
+                        ? "bg-white border-indigo-300 text-indigo-700 shadow-sm"
+                        : "bg-slate-100/50 border-slate-200 text-slate-500 hover:bg-slate-100"
+                    }`}
+                  >
+                    <span>I consent to natural voice companion audits</span>
+                    <div className={`w-5 h-5 rounded flex items-center justify-center transition-all ${
+                      voiceConsentLogged ? "bg-indigo-600 text-white" : "border border-slate-350 bg-white"
+                    }`}>
+                      {voiceConsentLogged && <IconCheck className="w-3.5 h-3.5" />}
+                    </div>
+                  </button>
+                </div>
+
+              </motion.div>
+            )}
+
+            {/* ========================================== */}
+            {/* LADY FLOW SCREENS */}
+            {/* ========================================== */}
+            {profileType === "lady" && currentStep === 1 && (
+              <motion.div
+                key="lStep1"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                className="flex flex-col gap-5"
+              >
+                <div className="text-left">
+                  <h2 className="text-xl font-bold text-slate-900 tracking-tight text-display">Reproductive &amp; Hormonal Setup</h2>
+                  <p className="text-sm text-slate-500 font-semibold mt-1">
+                    Set up your hormonal and menstrual cycles baseline.
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-4 text-left">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Full Name</label>
+                    <input
+                      type="text"
+                      required
+                      value={ladyName}
+                      onChange={(e) => setLadyName(e.target.value)}
+                      placeholder="e.g. Clara Reed"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold outline-none focus:bg-white focus:border-rose-400 focus:ring-1 focus:ring-rose-500"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Date of Birth</label>
+                      <input
+                        type="date"
+                        required
+                        value={ladyDob}
+                        onChange={(e) => setLadyDob(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold outline-none focus:bg-white focus:border-rose-400 text-slate-700"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Avg Cycle Length (days)</label>
+                      <input
+                        type="number"
+                        min="15"
+                        max="50"
+                        required
+                        value={ladyCycleLength}
+                        onChange={(e) => setLadyCycleLength(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold outline-none focus:bg-white focus:border-rose-400 text-slate-700"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Active Contraceptive Tracker</label>
+                    <select
+                      value={ladyContraception}
+                      onChange={(e) => setLadyContraception(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold outline-none focus:bg-white focus:border-rose-400 text-slate-700"
+                    >
+                      <option value="none">None / Cycle Awareness</option>
+                      <option value="pill-combo">Combination Oral Pill</option>
+                      <option value="pill-prog">Progesterone-Only Pill</option>
+                      <option value="patch">Hormonal Patch</option>
+                      <option value="iud">Intrauterine Device (IUD)</option>
+                      <option value="condoms">Barrier / Condoms</option>
+                    </select>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {profileType === "lady" && currentStep === 2 && (
+              <motion.div
+                key="lStep2"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                className="flex flex-col gap-5 text-left"
+              >
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900 tracking-tight text-display">Preventative Screenings</h2>
+                  <p className="text-sm text-slate-500 font-semibold mt-1">
+                    Enter your recent cervical smears and active symptoms.
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Last Cervical Smear Date</label>
+                      <input
+                        type="date"
+                        value={ladyLastSmear}
+                        onChange={(e) => setLadyLastSmear(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold outline-none focus:bg-white focus:border-rose-400 text-slate-700"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">HPV Vaccine Doses</label>
+                      <select
+                        value={ladyHpvDoses}
+                        onChange={(e) => setLadyHpvDoses(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 text-xs font-bold outline-none focus:bg-white focus:border-rose-400 text-slate-700"
+                      >
+                        <option value="0">None</option>
+                        <option value="1">1 Dose</option>
+                        <option value="2">2 Doses (Completed)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Active Luteal/Menstrual Symptoms</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {[
+                        { key: "cramps", label: "Pelvic Cramps" },
+                        { key: "bloating", label: "Abdominal Bloating" },
+                        { key: "fatigue", label: "Physical Fatigue" },
+                        { key: "breakouts", label: "Skin Breakouts" }
+                      ].map((item) => {
+                        const active = ladySymptoms[item.key];
+                        return (
+                          <button
+                            key={item.key}
+                            type="button"
+                            onClick={() => setLadySymptoms(prev => ({ ...prev, [item.key]: !prev[item.key] }))}
+                            className={`p-3 rounded-xl border text-left flex items-start gap-2.5 transition-all ${
+                              active
+                                ? "bg-rose-50 border-rose-250 text-rose-800 font-bold"
+                                : "bg-slate-50 border-slate-200 hover:bg-slate-100/50 text-slate-600"
+                            }`}
+                          >
+                            <div className={`w-4 h-4 rounded flex-shrink-0 flex items-center justify-center transition-all ${
+                              active ? "bg-rose-500 text-white" : "border border-slate-350 bg-white"
+                            }`}>
+                              {active && <IconCheck className="w-3.5 h-3.5" />}
+                            </div>
+                            <span className="text-xs font-bold leading-none">{item.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {profileType === "lady" && currentStep === 3 && (
+              <motion.div
+                key="lStep3"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                className="flex flex-col gap-6 text-left"
+              >
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900 tracking-tight text-display">Clinical Vault Consent</h2>
+                  <p className="text-sm text-slate-500 font-semibold mt-1">
+                    Manage privacy parameters and encryption options.
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-3 p-5 bg-rose-50/40 border border-rose-100 rounded-2xl">
+                  <div className="flex items-center gap-2">
+                    <IconShieldCheck className="w-5 h-5 text-rose-500" />
+                    <h4 className="text-xs font-black text-slate-800 uppercase tracking-wide">Zero-Knowledge Encrypted Vault</h4>
+                  </div>
+                  <p className="text-[10px] text-slate-500 font-semibold leading-relaxed">
+                    Ahnara Lady stores pelvic scans, pain maps, and fertility calendars inside an encrypted vault. Toggle below to confirm consent.
+                  </p>
+                  
+                  <button
+                    type="button"
+                    onClick={() => setLadyVaultConsent(prev => !prev)}
+                    className={`mt-2 py-3 px-4 rounded-xl border text-xs font-bold flex items-center justify-between transition-all ${
+                      ladyVaultConsent
+                        ? "bg-white border-rose-350 text-rose-700 shadow-sm"
+                        : "bg-slate-100/50 border-slate-200 text-slate-500 hover:bg-slate-100"
+                    }`}
+                  >
+                    <span>I consent to store encrypted reproductive wellness logs</span>
+                    <div className={`w-5 h-5 rounded flex items-center justify-center transition-all ${
+                      ladyVaultConsent ? "bg-rose-500 text-white" : "border border-slate-350 bg-white"
+                    }`}>
+                      {ladyVaultConsent && <IconCheck className="w-3.5 h-3.5" />}
+                    </div>
+                  </button>
+                </div>
+              </motion.div>
+            )}
+            {profileType === "girlie" && currentStep === 1 && (
+              <motion.div
+                key="gStep1"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                className="flex flex-col gap-5 text-left"
+              >
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900 tracking-tight text-display">Adolescent Profile &amp; Age</h2>
+                  <p className="text-sm text-slate-500 font-semibold mt-1">
+                    Provide basic detail parameters to customize educational guidance.
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">My Full Name</label>
+                    <input
+                      type="text"
+                      value={girlieName}
+                      onChange={(e) => setGirlieName(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl py-3.5 px-4 text-xs font-bold outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between items-baseline mb-2">
+                      <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Age Verification</label>
+                      <span className="text-xs font-black text-pink-650">{girlieAge} Years Old</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="10"
+                      max="20"
+                      value={girlieAge}
+                      onChange={(e) => setGirlieAge(e.target.value)}
+                      className="w-full h-1 bg-pink-100 rounded-lg appearance-none cursor-pointer accent-pink-500 my-2"
+                    />
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Puberty Milestones</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setGirlieFirstPeriod(!girlieFirstPeriod)}
+                        className={`p-3 border rounded-xl text-xs font-bold flex items-center justify-between transition-all ${
+                          girlieFirstPeriod ? "bg-pink-50 border-pink-200 text-pink-700" : "bg-slate-50 border-slate-200 text-slate-500"
+                        }`}
+                      >
+                        <span>First period started</span>
+                        {girlieFirstPeriod && <IconCheck className="w-4 h-4 text-pink-500" />}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setGirlieHeightGrowth(!girlieHeightGrowth)}
+                        className={`p-3 border rounded-xl text-xs font-bold flex items-center justify-between transition-all ${
+                          girlieHeightGrowth ? "bg-pink-50 border-pink-200 text-pink-700" : "bg-slate-50 border-slate-200 text-slate-500"
+                        }`}
+                      >
+                        <span>Height growth check</span>
+                        {girlieHeightGrowth && <IconCheck className="w-4 h-4 text-pink-500" />}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {profileType === "girlie" && currentStep === 2 && (
+              <motion.div
+                key="gStep2"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                className="flex flex-col gap-5 text-left"
+              >
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900 tracking-tight text-display">Privacy &amp; Local Lock</h2>
+                  <p className="text-sm text-slate-500 font-semibold mt-1">
+                    Set up secure passcode protections for your private logs.
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-3 p-5 bg-pink-50/20 border border-pink-100 rounded-2xl">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-800">Enable local PIN Screen Lock</span>
+                    <button
+                      type="button"
+                      onClick={() => setGirliePinEnabled(!girliePinEnabled)}
+                      className={`w-10 h-6 rounded-full p-1 transition-all ${girliePinEnabled ? "bg-pink-500" : "bg-slate-350"}`}
+                    >
+                      <div className={`bg-white w-4 h-4 rounded-full shadow-md transition-all ${girliePinEnabled ? "translate-x-4" : "translate-x-0"}`} />
+                    </button>
+                  </div>
+                  {girliePinEnabled && (
+                    <div className="mt-3">
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Set 4-Digit Passcode PIN</label>
+                      <input
+                        type="text"
+                        maxLength={4}
+                        value={girliePinCode}
+                        onChange={(e) => setGirliePinCode(e.target.value)}
+                        className="w-24 bg-white border border-slate-200 rounded-xl py-3 px-4 text-center text-sm font-black tracking-widest outline-none focus:border-pink-350"
+                      />
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {profileType === "girlie" && currentStep === 3 && (
+              <motion.div
+                key="gStep3"
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                className="flex flex-col gap-5 text-left"
+              >
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900 tracking-tight text-display">Parent Account Circle Sync</h2>
+                  <p className="text-sm text-slate-500 font-semibold mt-1">
+                    Optionally link parent accounts to forward supply request tickets.
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Parent Guard Sync Code</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="e.g. MAMA-849-204"
+                        value={girlieParentCode}
+                        onChange={(e) => setGirlieParentCode(e.target.value)}
+                        className="flex-1 bg-slate-50 border border-slate-200 rounded-xl py-3.5 px-4 text-xs font-bold outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setGirlieParentSynced(true)}
+                        className="bg-[#1E293B] hover:bg-slate-800 text-white font-black text-xs px-4 rounded-xl border-none"
+                      >
+                        Verify &amp; Link
+                      </button>
+                    </div>
+                  </div>
+
+                  {girlieParentSynced && (
+                    <div className="p-3.5 bg-emerald-50 border border-emerald-250 text-emerald-800 rounded-xl text-xs font-bold text-center">
+                      ✓ Connected to Jane Doe (Mama) account successfully!
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
           </AnimatePresence>
         </div>
 
@@ -1010,9 +1914,25 @@ export default function OnboardingPage() {
               variant="success" 
               onClick={handleComplete}
               rightIcon={<IconCheck className="w-4 h-4" />}
-              className="!rounded-xl bg-[#8BB436] hover:bg-[#7aa02e] border-none text-white font-bold"
+              className={`!rounded-xl border-none text-white font-bold ${
+                profileType === "maternal" 
+                  ? "bg-[#8BB436] hover:bg-[#7aa02e]" 
+                  : profileType === "pediatric" 
+                  ? "bg-[#0089C1] hover:bg-[#007cb0]" 
+                  : profileType === "lady" 
+                  ? "bg-rose-500 hover:bg-rose-600" 
+                  : profileType === "girlie" 
+                  ? "bg-pink-500 hover:bg-pink-650" 
+                  : "bg-indigo-600 hover:bg-indigo-700"
+              }`}
             >
-              Calculate &amp; Enter Dashboard
+              {profileType === "seniors" 
+                ? "Complete & Enter Seniors Hub" 
+                : profileType === "lady" 
+                ? "Complete & Enter Lady Hub" 
+                : profileType === "girlie" 
+                ? "Complete & Enter Girlie Hub" 
+                : "Calculate & Enter Dashboard"}
             </AhnaraButton>
           )}
         </div>

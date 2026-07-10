@@ -76,7 +76,13 @@ export const AhnaraNavbar = () => {
             <div className="hidden sm:flex items-center gap-3">
               {user ? (
                 <>
-                  <Link href="/dashboard">
+                  <Link href="/circle" className="text-sm font-bold text-slate-600 hover:text-indigo-650 transition-colors">
+                    Circle
+                  </Link>
+                  <Link href="/dashboard/family" className="text-sm font-bold text-slate-600 hover:text-indigo-650 transition-colors mr-2">
+                    Family Hub
+                  </Link>
+                  <Link href={user.role === "KIDS" ? "/kids" : user.role === "SENIORS" ? "/seniors" : "/mama/dashboard"}>
                     <AhnaraButton size="sm" leftIcon={<Grid className="w-4 h-4" />}>
                       Dashboard
                     </AhnaraButton>

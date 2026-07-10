@@ -57,12 +57,12 @@ export default function MamaWorkspaceLayout({ children }: { children: React.Reac
   }, [pathname, router]);
 
   const menuItems = [
-    { name: "Today", href: "/dashboard", icon: IconLayoutDashboard, activeIcon: IconLayoutDashboardFilled },
-    { name: "AI Midwife", href: "/midwife", icon: IconMessageChatbot, activeIcon: IconMessageChatbotFilled },
-    { name: "Antenatal", href: "/anc", icon: IconCalendar, activeIcon: IconCalendarFilled },
-    { name: "Birth Plan", href: "/birth-plan", icon: IconFileDescription, activeIcon: IconFileDescriptionFilled },
-    { name: "Meds", href: "/meds", icon: IconPill, activeIcon: IconPillFilled },
-    { name: "Academy", href: "/academy", icon: IconBook, activeIcon: IconBookFilled },
+    { name: "Today", href: "/mama/dashboard", icon: IconLayoutDashboard, activeIcon: IconLayoutDashboardFilled },
+    { name: "AI Midwife", href: "/mama/midwife", icon: IconMessageChatbot, activeIcon: IconMessageChatbotFilled },
+    { name: "Antenatal", href: "/mama/anc", icon: IconCalendar, activeIcon: IconCalendarFilled },
+    { name: "Birth Plan", href: "/mama/birth-plan", icon: IconFileDescription, activeIcon: IconFileDescriptionFilled },
+    { name: "Meds", href: "/mama/meds", icon: IconPill, activeIcon: IconPillFilled },
+    { name: "Academy", href: "/mama/academy", icon: IconBook, activeIcon: IconBookFilled },
   ];
 
   // SOS double-tap trigger
