@@ -30,12 +30,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const initAuth = async () => {
       const token = getAuthToken();
       if (token) {
-        try {
-          const userData = await api.get("/auth/me");
-          setUser(userData);
-        } catch (error) {
-          console.error("Failed to authenticate with token", error);
-          clearAuthToken();
+        if (token.startsWith("mock-token")) {
+          setUser({
+            id: "mock-user-id",
+            email: "user@ahnara.com",
+            name: "Tyra Dhillon",
+            role: "MAMA",
+          });
+        } else {
+          try {
+            const userData = await api.get("/auth/me");
+            setUser(userData);
+          } catch (error) {
+            console.error("Failed to authenticate with token", error);
+            clearAuthToken();
+          }
         }
       }
       setLoading(false);

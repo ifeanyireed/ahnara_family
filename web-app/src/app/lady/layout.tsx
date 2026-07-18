@@ -24,7 +24,8 @@ import {
   IconBook,
   IconBookFilled,
   IconEar,
-  IconCheck
+  IconCheck,
+  IconPhoneCall
 } from "@tabler/icons-react";
 import { AhnaraLoader } from "@/components/ahnara/AhnaraLoader";
 
@@ -73,6 +74,7 @@ export default function LadyWorkspaceLayout({ children }: { children: React.Reac
     { name: "Pelvic Coach", href: "/lady/coach", icon: IconHourglass, activeIcon: IconHourglass },
     { name: "Hot Flush", href: "/lady/hot-flush", icon: IconFlame, activeIcon: IconFlameFilled },
     { name: "Reports", href: "/lady/reports", icon: IconFileText, activeIcon: IconFileTextFilled },
+    { name: "Consults", href: "/lady/consult", icon: IconPhoneCall, activeIcon: IconPhoneCall },
     { name: "Academy", href: "/lady/academy", icon: IconBook, activeIcon: IconBookFilled },
   ];
 

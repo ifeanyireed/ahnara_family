@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { 
   IconCalendar, 
   IconUser, 
@@ -11,7 +11,14 @@ import {
   IconBuildingHospital,
   IconMapPin,
   IconPlus,
-  IconChecks
+  IconChecks,
+  IconVideo,
+  IconVideoOff,
+  IconMicrophone,
+  IconMicrophoneOff,
+  IconPhoneOff,
+  IconActivity,
+  IconHeart
 } from "@tabler/icons-react";
 import { AhnaraCard } from "@/components/ahnara/AhnaraCard";
 import { AhnaraButton } from "@/components/ahnara/AhnaraButton";
@@ -34,8 +41,47 @@ export default function SeniorsTrustedCircle() {
     setTasks(prev => prev.map(t => t.id === id ? { ...t, done: !t.done } : t));
   };
 
+  // Telehealth safety net call states
+  const [activeCall, setActiveCall] = useState(false);
+  const [callConnected, setCallConnected] = useState(false);
+  const [callMuted, setCallMuted] = useState(false);
+  const [videoMuted, setVideoMuted] = useState(false);
+  const [callDuration, setCallDuration] = useState(0);
+
+  useEffect(() => {
+    let timer: any;
+    if (callConnected) {
+      timer = setInterval(() => {
+        setCallDuration(prev => prev + 1);
+      }, 1000);
+    } else {
+      setCallDuration(0);
+    }
+    return () => clearInterval(timer);
+  }, [callConnected]);
+
+  const formatDuration = (sec: number) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${s < 10 ? "0" : ""}${s}`;
+  };
+
+  const handleLaunchCall = () => {
+    setActiveCall(true);
+    setCallConnected(false);
+    // Simulate connection delay
+    setTimeout(() => {
+      setCallConnected(true);
+    }, 1500);
+  };
+
+  const handleEndCall = () => {
+    setCallConnected(false);
+    setActiveCall(false);
+  };
+
   return (
-    <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-3 text-left">
+    <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-3 text-left relative">
       
       {/* Calendar Timeline (8 cols) */}
       <main className="lg:col-span-8 flex flex-col gap-3">
@@ -147,6 +193,7 @@ export default function SeniorsTrustedCircle() {
           </p>
           <AhnaraButton
             variant="primary"
+            onClick={handleLaunchCall}
             className="w-full mt-1.5 bg-white text-indigo-700 hover:bg-slate-100 !rounded-xl font-bold flex items-center justify-center gap-1.5"
           >
             <IconPhoneCall className="w-4 h-4 text-indigo-600" />
@@ -155,6 +202,110 @@ export default function SeniorsTrustedCircle() {
         </AhnaraCard>
 
       </aside>
+
+      {/* ACTIVE CALL MODAL OVERLAY */}
+      <AnimatePresence>
+        {activeCall && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-[#E8EFF4]/95 backdrop-blur-xs flex items-center justify-center p-4 z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              transition={{ duration: 0.3, type: "spring" }}
+              className="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-[32px] p-6 shadow-2xl overflow-hidden flex flex-col gap-4 text-white"
+            >
+              {/* Call Header */}
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                  Geriatric Safety consult
+                </span>
+                <span className="text-xs font-mono font-bold bg-slate-800/80 px-2 py-0.5 rounded text-[#D4F475]">
+                  {callConnected ? formatDuration(callDuration) : "Connecting..."}
+                </span>
+              </div>
+
+              {/* Call Video Screen Panel */}
+              <div className="w-full h-80 bg-slate-850 rounded-2xl relative overflow-hidden flex items-center justify-center border border-slate-800">
+                {!callConnected ? (
+                  <div className="flex flex-col items-center justify-center gap-3 text-slate-400 text-center p-6">
+                    <div className="w-12 h-12 rounded-full border-4 border-[#0089C1] border-t-transparent animate-spin mb-2" />
+                    <h4 className="text-sm font-black text-white">Contacting Telemedicine Spine</h4>
+                    <p className="text-xs text-slate-400 font-semibold leading-relaxed">
+                      Securing WebRTC encryption channel. Matching on-duty obstetric/geriatric practitioners...
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Doctor Video Feed (Background) */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 to-slate-900 flex flex-col items-center justify-center text-center p-6">
+                      <div className="w-20 h-20 rounded-full bg-[#D4F475] flex items-center justify-center shadow-lg mb-3">
+                        <span className="text-slate-900 font-black text-xl">SM</span>
+                      </div>
+                      <h4 className="text-base font-black text-white">Dr. Sarah Miller</h4>
+                      <span className="text-xs text-slate-400 font-semibold mt-0.5">Geriatric Practice Lead • Grace Clinic</span>
+                      
+                      <div className="absolute bottom-4 left-4 right-4 bg-black/40 backdrop-blur-xs p-2 rounded-xl border border-white/5 flex items-center justify-center gap-6 text-[10px] font-mono text-[#D4F475]">
+                        <span className="flex items-center gap-1"><IconHeart className="w-3.5 h-3.5 text-red-500 fill-current" /> HR: 72 BPM</span>
+                        <span className="flex items-center gap-1"><IconActivity className="w-3.5 h-3.5 text-orange-400" /> Steps: 8,402</span>
+                        <span>Spine Secure ✅</span>
+                      </div>
+                    </div>
+
+                    {/* Patient Video PIP Overlay */}
+                    <div className="absolute bottom-4 right-4 w-28 h-20 bg-slate-900 border border-slate-700 rounded-xl overflow-hidden shadow-xl z-20 flex flex-col items-center justify-center text-[9px] font-bold text-slate-400 bg-slate-900/90">
+                      {videoMuted ? (
+                        <IconVideoOff className="w-5 h-5 text-slate-600" />
+                      ) : (
+                        <>
+                          <span className="text-[10px] text-[#0089C1] font-black">Margaret</span>
+                          <span className="text-[8px] opacity-75 mt-0.5">Mock Selfie Feed</span>
+                        </>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Call Controls Deck */}
+              <div className="flex items-center justify-center gap-4 py-2">
+                <button 
+                  onClick={() => setCallMuted(!callMuted)}
+                  disabled={!callConnected}
+                  className={`p-3 rounded-full border text-white transition-all cursor-pointer ${
+                    callMuted ? "bg-red-500 border-red-500 hover:bg-red-650" : "bg-slate-800 border-slate-750 hover:bg-slate-700"
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  title={callMuted ? "Unmute Mic" : "Mute Mic"}
+                >
+                  {callMuted ? <IconMicrophoneOff className="w-5 h-5" /> : <IconMicrophone className="w-5 h-5" />}
+                </button>
+                <button 
+                  onClick={() => setVideoMuted(!videoMuted)}
+                  disabled={!callConnected}
+                  className={`p-3 rounded-full border text-white transition-all cursor-pointer ${
+                    videoMuted ? "bg-red-500 border-red-500 hover:bg-red-650" : "bg-slate-800 border-slate-750 hover:bg-slate-700"
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  title={videoMuted ? "Start Video" : "Stop Video"}
+                >
+                  {videoMuted ? <IconVideoOff className="w-5 h-5" /> : <IconVideo className="w-5 h-5" />}
+                </button>
+                <button 
+                  onClick={handleEndCall}
+                  className="p-3.5 bg-red-600 hover:bg-red-700 border-none text-white rounded-full transition-all cursor-pointer shadow-lg"
+                  title="End Consult Call"
+                >
+                  <IconPhoneOff className="w-5 h-5" />
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

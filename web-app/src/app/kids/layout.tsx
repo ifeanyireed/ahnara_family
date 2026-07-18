@@ -82,6 +82,7 @@ export default function KidsWorkspaceLayout({ children }: { children: React.Reac
     { name: "Immunization", href: "/kids/immunization", icon: IconCalendar, activeIcon: IconCalendarFilled },
     { name: "Growth Curve", href: "/kids/growth-curve", icon: IconFileDescription, activeIcon: IconFileDescriptionFilled },
     { name: "Milestones", href: "/kids/milestones", icon: IconPill, activeIcon: IconPillFilled },
+    { name: "Consults", href: "/kids/consult", icon: IconPhoneCall, activeIcon: IconPhoneCall },
     { name: "Academy", href: "/kids/academy", icon: IconBook, activeIcon: IconBookFilled },
   ];
 

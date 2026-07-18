@@ -36,6 +36,41 @@ export default function RegisterPage() {
     setError(null);
 
     try {
+      const { api } = await import("@/lib/api");
+      
+      const roleToSend = "patient"; // default role in identity-service DB is 'patient'
+      const phone = `+234${Math.floor(8000000000 + Math.random() * 1000000000)}`;
+
+      try {
+        await api.post("/auth/register", {
+          email,
+          phone,
+          password,
+          role: roleToSend,
+        });
+
+        // Auto login after registration
+        const loginResponse = await api.post("/auth/login", {
+          email,
+          password,
+        });
+
+        const mappedRole = email.toLowerCase().includes("kids") || email.toLowerCase().includes("pediatric") ? "KIDS" : "MAMA";
+
+        login(loginResponse.token, {
+          id: loginResponse.user.id,
+          email: loginResponse.user.email,
+          name: name,
+          role: mappedRole,
+        });
+
+        setIsLoading(false);
+        router.push("/onboarding");
+        return;
+      } catch (apiErr) {
+        console.warn("API registration failed, falling back to mock registration:", apiErr);
+      }
+
       // Mock registration fallback
       setTimeout(() => {
         setIsLoading(false);
@@ -47,7 +82,7 @@ export default function RegisterPage() {
           role: role,
         });
         router.push("/onboarding");
-      }, 1000);
+      }, 600);
     } catch (err: any) {
       setIsLoading(false);
       setError(err.message || "Failed to register.");

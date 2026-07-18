@@ -12,7 +12,12 @@ import {
   IconX,
   IconEar,
   IconVideo,
-  IconPill
+  IconPill,
+  IconVideoOff,
+  IconMicrophoneOff,
+  IconPhoneOff,
+  IconActivity,
+  IconHeart
 } from "@tabler/icons-react";
 import { AhnaraCard } from "@/components/ahnara/AhnaraCard";
 import { AhnaraButton } from "@/components/ahnara/AhnaraButton";
@@ -37,6 +42,44 @@ export default function AiPediatricianPage() {
   const [activeWarning, setActiveWarning] = useState<string | null>(null);
   const [videoActive, setVideoActive] = useState(false);
   
+  // Telehealth Safety Net Call states
+  const [activeCall, setActiveCall] = useState(false);
+  const [callConnected, setCallConnected] = useState(false);
+  const [callMuted, setCallMuted] = useState(false);
+  const [videoMuted, setVideoMuted] = useState(false);
+  const [callDuration, setCallDuration] = useState(0);
+
+  useEffect(() => {
+    let timer: any;
+    if (callConnected) {
+      timer = setInterval(() => {
+        setCallDuration(prev => prev + 1);
+      }, 1000);
+    } else {
+      setCallDuration(0);
+    }
+    return () => clearInterval(timer);
+  }, [callConnected]);
+
+  const formatDuration = (sec: number) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${s < 10 ? "0" : ""}${s}`;
+  };
+
+  const handleLaunchCall = () => {
+    setActiveCall(true);
+    setCallConnected(false);
+    setTimeout(() => {
+      setCallConnected(true);
+    }, 1500);
+  };
+
+  const handleEndCall = () => {
+    setCallConnected(false);
+    setActiveCall(false);
+  };
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recordingTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -463,18 +506,8 @@ export default function AiPediatricianPage() {
               </p>
               
               <button
-                onClick={() => {
-                  if (videoActive) {
-                    alert("Launching encrypted Pediatric Telehealth Consultation room...");
-                  } else {
-                    alert("A pediatrician is available. Consult triggers immediately when active symptoms are checked by AI Triage.");
-                  }
-                }}
-                className={`w-full font-bold text-xs py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md border-none ${
-                  videoActive 
-                    ? "bg-red-600 text-white hover:bg-red-700" 
-                    : "bg-[#1E293B] text-white hover:bg-slate-800 opacity-75"
-                }`}
+                onClick={handleLaunchCall}
+                className="w-full font-bold text-xs py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-md border-none bg-red-650 text-white hover:bg-red-700 cursor-pointer"
               >
                 <IconVideo className="w-4 h-4" />
                 {videoActive ? "Enter Consultation Room" : "Initiate Video Consult"}
@@ -482,7 +515,7 @@ export default function AiPediatricianPage() {
 
               <button
                 onClick={() => alert("Forwarding WHO prescription (ORS/Zinc/Amoxicillin) to AHNARA Market Pharmacy...")}
-                className="w-full bg-white border border-[#0089C1]/20 hover:bg-slate-50 text-[#0089C1] font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-2"
+                className="w-full bg-white border border-[#0089C1]/20 hover:bg-slate-50 text-[#0089C1] font-bold text-xs py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
                 <IconPill className="w-4 h-4" />
                 Send Prescriptions to Market
@@ -496,6 +529,110 @@ export default function AiPediatricianPage() {
         </motion.div>
 
       </aside>
+
+      {/* ACTIVE CALL MODAL OVERLAY */}
+      <AnimatePresence>
+        {activeCall && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-[#E8EFF4]/95 backdrop-blur-xs flex items-center justify-center p-4 z-50"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 15 }}
+              transition={{ duration: 0.3, type: "spring" }}
+              className="w-full max-w-xl bg-slate-900 border border-slate-800 rounded-[32px] p-6 shadow-2xl overflow-hidden flex flex-col gap-4 text-white"
+            >
+              {/* Call Header */}
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                  Pediatric Telemedicine Triage
+                </span>
+                <span className="text-xs font-mono font-bold bg-slate-800/80 px-2 py-0.5 rounded text-[#D4F475]">
+                  {callConnected ? formatDuration(callDuration) : "Connecting..."}
+                </span>
+              </div>
+
+              {/* Call Video Screen Panel */}
+              <div className="w-full h-80 bg-slate-850 rounded-2xl relative overflow-hidden flex items-center justify-center border border-slate-800">
+                {!callConnected ? (
+                  <div className="flex flex-col items-center justify-center gap-3 text-slate-400 text-center p-6">
+                    <div className="w-12 h-12 rounded-full border-4 border-[#0089C1] border-t-transparent animate-spin mb-2" />
+                    <h4 className="text-sm font-black text-white">Contacting Pediatrician on duty</h4>
+                    <p className="text-xs text-slate-400 font-semibold leading-relaxed">
+                      Securing WebRTC encryption channel. Matching on-duty obstetric/pediatric practitioners...
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Doctor Video Feed (Background) */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-teal-950 to-slate-900 flex flex-col items-center justify-center text-center p-6">
+                      <div className="w-20 h-20 rounded-full bg-sky-400 flex items-center justify-center shadow-lg mb-3">
+                        <span className="text-white font-black text-xl">DA</span>
+                      </div>
+                      <h4 className="text-base font-black text-white">Dr. Adenuga</h4>
+                      <span className="text-xs text-slate-400 font-semibold mt-0.5">Pediatric Specialist • Grace Clinic</span>
+                      
+                      <div className="absolute bottom-4 left-4 right-4 bg-black/40 backdrop-blur-xs p-2 rounded-xl border border-white/5 flex items-center justify-center gap-6 text-[10px] font-mono text-[#D4F475]">
+                        <span className="flex items-center gap-1"><IconActivity className="w-3.5 h-3.5 text-orange-400" /> Patient: Baby Aria</span>
+                        <span className="flex items-center gap-1"><IconAlertOctagon className="w-3.5 h-3.5 text-red-500" /> Vitals: Temp 39.1°C</span>
+                        <span>Spine Secure ✅</span>
+                      </div>
+                    </div>
+
+                    {/* Patient Video PIP Overlay */}
+                    <div className="absolute bottom-4 right-4 w-28 h-20 bg-slate-900 border border-slate-700 rounded-xl overflow-hidden shadow-xl z-20 flex flex-col items-center justify-center text-[9px] font-bold text-slate-400 bg-slate-900/90">
+                      {videoMuted ? (
+                        <IconVideoOff className="w-5 h-5 text-slate-600" />
+                      ) : (
+                        <>
+                          <span className="text-[10px] text-[#0089C1] font-black">Jane &amp; Aria</span>
+                          <span className="text-[8px] opacity-75 mt-0.5">Mock Selfie Feed</span>
+                        </>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Call Controls Deck */}
+              <div className="flex items-center justify-center gap-4 py-2">
+                <button 
+                  onClick={() => setCallMuted(!callMuted)}
+                  disabled={!callConnected}
+                  className={`p-3 rounded-full border text-white transition-all cursor-pointer ${
+                    callMuted ? "bg-red-500 border-red-500 hover:bg-red-650" : "bg-slate-800 border-slate-750 hover:bg-slate-700"
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  title={callMuted ? "Unmute Mic" : "Mute Mic"}
+                >
+                  {callMuted ? <IconMicrophoneOff className="w-5 h-5" /> : <IconMicrophone className="w-5 h-5" />}
+                </button>
+                <button 
+                  onClick={() => setVideoMuted(!videoMuted)}
+                  disabled={!callConnected}
+                  className={`p-3 rounded-full border text-white transition-all cursor-pointer ${
+                    videoMuted ? "bg-red-500 border-red-500 hover:bg-red-650" : "bg-slate-800 border-slate-750 hover:bg-slate-700"
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                  title={videoMuted ? "Start Video" : "Stop Video"}
+                >
+                  {videoMuted ? <IconVideoOff className="w-5 h-5" /> : <IconVideo className="w-5 h-5" />}
+                </button>
+                <button 
+                  onClick={handleEndCall}
+                  className="p-3.5 bg-red-650 hover:bg-red-700 border-none text-white rounded-full transition-all cursor-pointer shadow-lg"
+                  title="End Consult Call"
+                >
+                  <IconPhoneOff className="w-5 h-5" />
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
     </div>
   );

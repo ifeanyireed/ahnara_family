@@ -30,7 +30,42 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      // Mock login simulation with realistic response times
+      const { api } = await import("@/lib/api");
+      const response = await api.post("/auth/login", { email, password });
+      
+      let mappedRole = "MAMA";
+      if (response.user.email.toLowerCase().includes("kids") || response.user.email.toLowerCase().includes("pediatric") || response.user.id === "usr-child-001") {
+        mappedRole = "KIDS";
+      } else if (response.user.email.toLowerCase().includes("senior") || response.user.email.toLowerCase().includes("elder") || response.user.id === "usr-elder-001") {
+        mappedRole = "SENIORS";
+      } else if (response.user.email.toLowerCase().includes("lady") || response.user.email.toLowerCase().includes("clara") || response.user.id === "usr-lady-001") {
+        mappedRole = "LADY";
+      } else if (response.user.email.toLowerCase().includes("girlie") || response.user.email.toLowerCase().includes("teen") || response.user.id === "usr-girlie-001") {
+        mappedRole = "GIRLIE";
+      }
+
+      login(response.token, {
+        id: response.user.id,
+        email: response.user.email,
+        name: response.user.email.split("@")[0].replace(".", " "),
+        role: mappedRole,
+      });
+
+      setIsLoading(false);
+      router.push(
+        mappedRole === "KIDS" 
+          ? "/kids" 
+          : mappedRole === "SENIORS" 
+          ? "/seniors" 
+          : mappedRole === "LADY" 
+          ? "/lady" 
+          : mappedRole === "GIRLIE" 
+          ? "/girlie" 
+          : "/mama/dashboard"
+      );
+    } catch (err: any) {
+      console.warn("API login failed, falling back to mock login simulation:", err);
+      // Mock login simulation fallback
       setTimeout(() => {
         setIsLoading(false);
         let role = "MAMA";
@@ -89,62 +124,40 @@ export default function LoginPage() {
             ? "/girlie" 
             : "/mama/dashboard"
         );
-      }, 1000);
-    } catch (err: any) {
-      setIsLoading(false);
-      setError(err.message || "Invalid credentials.");
+      }, 600);
     }
   };
 
-  const handleQuickLogin = (role: "MAMA" | "KIDS" | "SENIORS" | "LADY" | "GIRLIE") => {
+  const handleQuickLogin = async (role: "MAMA" | "KIDS" | "SENIORS" | "LADY" | "GIRLIE") => {
     setIsLoading(true);
     setError(null);
-    setTimeout(() => {
+    
+    let targetEmail = "mama@ahnara.com";
+    let password = "password";
+    
+    if (role === "MAMA") {
+      targetEmail = "mother@ahnara.com";
+    } else if (role === "KIDS") {
+      targetEmail = "child@ahnara.com";
+    } else if (role === "SENIORS") {
+      targetEmail = "elder@ahnara.com";
+    } else if (role === "LADY") {
+      targetEmail = "clara@ahnara.com";
+    } else if (role === "GIRLIE") {
+      targetEmail = "girlie@ahnara.com";
+    }
+
+    try {
+      const { api } = await import("@/lib/api");
+      const response = await api.post("/auth/login", { email: targetEmail, password });
+      
+      login(response.token, {
+        id: response.user.id,
+        email: response.user.email,
+        name: role === "MAMA" ? "Jane Doe (Mama)" : role === "KIDS" ? "Jane Doe (Kids)" : role === "SENIORS" ? "Grandma Margaret" : role === "LADY" ? "Clara Reed" : "Jane Doe (Girlie)",
+        role: role,
+      });
       setIsLoading(false);
-      login(
-        role === "KIDS" 
-          ? "mock-token-kids" 
-          : role === "SENIORS" 
-          ? "mock-token-seniors" 
-          : role === "LADY" 
-          ? "mock-token-lady" 
-          : role === "GIRLIE" 
-          ? "mock-token-girlie" 
-          : "mock-token-mama",
-        {
-          id: 
-            role === "KIDS" 
-              ? "mock-kids-id" 
-              : role === "SENIORS" 
-              ? "mock-seniors-id" 
-              : role === "LADY" 
-              ? "mock-lady-id" 
-              : role === "GIRLIE" 
-              ? "mock-girlie-id" 
-              : "mock-mama-id",
-          email: 
-            role === "KIDS" 
-              ? "kids@ahnara.com" 
-              : role === "SENIORS" 
-              ? "seniors@ahnara.com" 
-              : role === "LADY" 
-              ? "clara@ahnara.com" 
-              : role === "GIRLIE" 
-              ? "girlie@ahnara.com" 
-              : "mama@ahnara.com",
-          name: 
-            role === "KIDS" 
-              ? "Jane Doe (Kids)" 
-              : role === "SENIORS" 
-              ? "Grandma Margaret" 
-              : role === "LADY" 
-              ? "Clara Reed" 
-              : role === "GIRLIE" 
-              ? "Jane Doe (Girlie)" 
-              : "Jane Doe (Mama)",
-          role: role,
-        }
-      );
       router.push(
         role === "KIDS" 
           ? "/kids" 
@@ -156,7 +169,67 @@ export default function LoginPage() {
           ? "/girlie" 
           : "/mama/dashboard"
       );
-    }, 600);
+    } catch (err: any) {
+      console.warn("API quick login failed, falling back to mock login:", err);
+      setTimeout(() => {
+        setIsLoading(false);
+        login(
+          role === "KIDS" 
+            ? "mock-token-kids" 
+            : role === "SENIORS" 
+            ? "mock-token-seniors" 
+            : role === "LADY" 
+            ? "mock-token-lady" 
+            : role === "GIRLIE" 
+            ? "mock-token-girlie" 
+            : "mock-token-mama",
+          {
+            id: 
+              role === "KIDS" 
+                ? "mock-kids-id" 
+                : role === "SENIORS" 
+                ? "mock-seniors-id" 
+                : role === "LADY" 
+                ? "mock-lady-id" 
+                : role === "GIRLIE" 
+                ? "mock-girlie-id" 
+                : "mock-mama-id",
+            email: 
+              role === "KIDS" 
+                ? "kids@ahnara.com" 
+                : role === "SENIORS" 
+                ? "seniors@ahnara.com" 
+                : role === "LADY" 
+                ? "clara@ahnara.com" 
+                : role === "GIRLIE" 
+                ? "girlie@ahnara.com" 
+                : "mama@ahnara.com",
+            name: 
+              role === "KIDS" 
+                ? "Jane Doe (Kids)" 
+                : role === "SENIORS" 
+                ? "Grandma Margaret" 
+                : role === "LADY" 
+                ? "Clara Reed" 
+                : role === "GIRLIE" 
+                ? "Jane Doe (Girlie)" 
+                : "Jane Doe (Mama)",
+            role: role,
+          }
+        );
+        router.push(
+          role === "KIDS" 
+            ? "/kids" 
+            : role === "SENIORS" 
+            ? "/seniors" 
+            : role === "LADY" 
+            ? "/lady" 
+            : role === "GIRLIE" 
+            ? "/girlie" 
+            : "/mama/dashboard"
+        );
+      }, 300);
+    }
   };
 
   return (

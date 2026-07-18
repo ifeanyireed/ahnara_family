@@ -20,6 +20,8 @@ import {
   IconNurse,
   IconAward
 } from "@tabler/icons-react";
+import { useAuth } from "@/components/ahnara/AuthContext";
+import { api } from "@/lib/api";
 import { AhnaraCard } from "@/components/ahnara/AhnaraCard";
 import { AhnaraButton } from "@/components/ahnara/AhnaraButton";
 
@@ -35,9 +37,13 @@ interface Contact {
 }
 
 export default function AntenatalCarePage() {
+  const { user } = useAuth();
   const [gestationWeeks, setGestationWeeks] = useState(12);
   const [expandedContactId, setExpandedContactId] = useState<number | null>(3); // Expand active by default
   const [selectedLabReport, setSelectedLabReport] = useState("all");
+  const [hemoglobin, setHemoglobin] = useState("11.4");
+  const [urineProtein, setUrineProtein] = useState("Negative");
+  const [bloodSugar, setBloodSugar] = useState("92");
 
   const initialContacts: Contact[] = [
     {
@@ -109,38 +115,122 @@ export default function AntenatalCarePage() {
 
   // Load gestation weeks to dynamically adjust contact statuses
   useEffect(() => {
-    const dataStr = localStorage.getItem("mama_gestation_data");
-    if (dataStr) {
-      try {
-        const data = JSON.parse(dataStr);
-        const weeks = data.gestationWeeks || 12;
-        setGestationWeeks(weeks);
+    if (!user || user.id.startsWith("mock-")) {
+      const dataStr = localStorage.getItem("mama_gestation_data");
+      if (dataStr) {
+        try {
+          const data = JSON.parse(dataStr);
+          const weeks = data.gestationWeeks || 12;
+          setGestationWeeks(weeks);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      return;
+    }
 
-        // Adjust active contact index based on gestation weeks
+    const fetchEhrData = async () => {
+      try {
+        const encounters = await api.get(`/ehr/encounters/patient/${user.id}`);
+        const observations = await api.get(`/ehr/observations/patient/${user.id}`);
+
+        const pregnancyVisits = encounters.filter((e: any) => e.encounterType === "pregnancy_visit");
+        let weeks = 12;
+
+        if (pregnancyVisits.length > 0) {
+          try {
+            const meta = JSON.parse(pregnancyVisits[0].metadata);
+            if (meta.gestational_weeks) {
+              weeks = meta.gestational_weeks;
+              setGestationWeeks(weeks);
+            }
+          } catch (e) {}
+        }
+
         const updated = initialContacts.map(c => {
           let status: "completed" | "active" | "locked" = "locked";
-          // Logic for WHO checkpoints
-          if (weeks >= 40 && c.id <= 8) status = "completed";
-          else if (weeks >= 38 && c.id <= 7) status = "completed";
-          else if (weeks >= 36 && c.id <= 6) status = "completed";
-          else if (weeks >= 34 && c.id <= 5) status = "completed";
-          else if (weeks >= 30 && c.id <= 4) status = "completed";
-          else if (weeks >= 26 && c.id <= 3) status = "completed";
-          else if (weeks >= 20 && c.id <= 2) status = "completed";
-          else if (weeks >= 12 && c.id <= 1) status = "completed";
+          let limit = 12;
+          if (c.id === 1) limit = 12;
+          else if (c.id === 2) limit = 20;
+          else if (c.id === 3) limit = 26;
+          else if (c.id === 4) limit = 30;
+          else if (c.id === 5) limit = 34;
+          else if (c.id === 6) limit = 36;
+          else if (c.id === 7) limit = 38;
+          else if (c.id === 8) limit = 40;
 
-          // Set the first non-completed one as active
-          return { ...c };
+          if (weeks > limit) {
+            status = "completed";
+          } else if (weeks === limit || (weeks > (limit - 4) && weeks <= limit)) {
+            status = "active";
+          }
+
+          const matchingVisit = pregnancyVisits.find((v: any) => {
+            try {
+              const meta = JSON.parse(v.metadata);
+              return meta.gestational_weeks === limit || (limit === 12 && meta.gestational_weeks <= 12) || (limit === 26 && meta.gestational_weeks === 24);
+            } catch (e) {
+              return false;
+            }
+          });
+
+          if (matchingVisit) {
+            try {
+              const meta = JSON.parse(matchingVisit.metadata);
+              return {
+                ...c,
+                status: "completed" as const,
+                notes: meta.notes || c.notes,
+                completedDate: new Date(matchingVisit.createdAt || Date.now()).toLocaleDateString(),
+                midwife: matchingVisit.providerId === "usr-carer-001" ? "Midwife Priscilla O." : "Midwife / Clinician",
+              };
+            } catch (e) {}
+          }
+
+          return { ...c, status };
         });
 
-        // Hardcode statuses representing the current progress mockup
-        // Contact 1 & 2 Completed, Contact 3 Active, others locked.
-        setContacts(initialContacts);
-      } catch (e) {
-        console.error(e);
+        const hasActive = updated.some(c => c.status === "active");
+        if (!hasActive) {
+          const firstLocked = updated.findIndex(c => c.status === "locked");
+          if (firstLocked > -1) {
+            updated[firstLocked].status = "active";
+          }
+        }
+
+        setContacts(updated);
+
+        // Extract specific observations if available
+        const hbObs = observations.find((o: any) => o.code === "hb" || o.category === "blood" || o.code === "hemoglobin");
+        if (hbObs) {
+          try {
+            const val = JSON.parse(hbObs.valueJson || hbObs.valueJSON);
+            if (val.value) setHemoglobin(String(val.value));
+          } catch(e) {}
+        }
+
+        const proteinObs = observations.find((o: any) => o.code === "urine_protein" || o.category === "urine");
+        if (proteinObs) {
+          try {
+            const val = JSON.parse(proteinObs.valueJson || proteinObs.valueJSON);
+            if (val.value) setUrineProtein(String(val.value));
+          } catch(e) {}
+        }
+
+        const sugarObs = observations.find((o: any) => o.code === "blood_sugar" || o.code === "fasting_sugar" || o.code === "8867-4");
+        if (sugarObs) {
+          try {
+            const val = JSON.parse(sugarObs.valueJson || sugarObs.valueJSON);
+            if (val.value) setBloodSugar(String(val.value));
+          } catch(e) {}
+        }
+      } catch (err) {
+        console.error("Failed to load clinical data from microservices", err);
       }
-    }
-  }, []);
+    };
+
+    fetchEhrData();
+  }, [user]);
 
   const toggleExpand = (id: number) => {
     setExpandedContactId(prev => prev === id ? null : id);
@@ -195,7 +285,7 @@ export default function AntenatalCarePage() {
               </div>
               <div className="flex items-baseline justify-between mt-2">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-black text-slate-800 text-display">11.4</span>
+                  <span className="text-2xl font-black text-slate-800 text-display">{hemoglobin}</span>
                   <span className="text-[10px] font-bold text-slate-400">g/dL</span>
                 </div>
                 <span className="text-[9px] font-black uppercase text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
@@ -225,7 +315,7 @@ export default function AntenatalCarePage() {
               </div>
               <div className="flex items-baseline justify-between mt-2">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-black text-slate-800 text-display">Negative</span>
+                  <span className="text-2xl font-black text-slate-800 text-display">{urineProtein}</span>
                 </div>
                 <span className="text-[9px] font-black uppercase text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
                   Cleared
@@ -254,7 +344,7 @@ export default function AntenatalCarePage() {
               </div>
               <div className="flex items-baseline justify-between mt-2">
                 <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-black text-slate-800 text-display">92</span>
+                  <span className="text-2xl font-black text-slate-800 text-display">{bloodSugar}</span>
                   <span className="text-[10px] font-bold text-slate-400">mg/dL</span>
                 </div>
                 <span className="text-[9px] font-black uppercase text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">

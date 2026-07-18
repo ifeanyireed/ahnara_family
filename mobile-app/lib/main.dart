@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
@@ -7886,8 +7887,15 @@ class _DashboardPageState extends State<DashboardPage> {
                   height: 48,
                   child: ElevatedButton.icon(
                     onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Launching telehealth call...')),
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const PatientTelehealthCallPage(
+                            doctorName: "Midwife Ngozi",
+                            specialty: "Maternal Health Lead",
+                            specialtyCode: "OB/GYN",
+                          ),
+                        ),
                       );
                     },
                     icon: const Icon(Icons.phone_in_talk, size: 16),
@@ -11402,6 +11410,240 @@ class _AhnaraAcademyPageState extends State<AhnaraAcademyPage> {
             ),
           )
         ],
+      ),
+    );
+  }
+}
+
+// ==========================================
+// TELEHEALTH SAFETY NET PATIENT CALL ROOM
+// ==========================================
+class PatientTelehealthCallPage extends StatefulWidget {
+  final String doctorName;
+  final String specialty;
+  final String specialtyCode;
+
+  const PatientTelehealthCallPage({
+    super.key,
+    required this.doctorName,
+    required this.specialty,
+    required this.specialtyCode,
+  });
+
+  @override
+  State<PatientTelehealthCallPage> createState() => _PatientTelehealthCallPageState();
+}
+
+class _PatientTelehealthCallPageState extends State<PatientTelehealthCallPage> {
+  bool _connected = false;
+  bool _muted = false;
+  bool _videoMuted = false;
+  int _duration = 0;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    // Simulate connection delay
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (mounted) {
+        setState(() {
+          _connected = true;
+        });
+        _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+          if (mounted) {
+            setState(() {
+              _duration++;
+            });
+          }
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  String _formatDuration(int sec) {
+    final m = sec ~/ 60;
+    final s = sec % 60;
+    return '$m:${s < 10 ? "0" : ""}$s';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF001C28),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            children: [
+              // Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'TELEMEDICINE CONSULT',
+                        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 0.5),
+                      ),
+                      Text(
+                        widget.doctorName,
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      _connected ? _formatDuration(_duration) : 'Connecting...',
+                      style: const TextStyle(color: Color(0xFFD4F475), fontSize: 11, fontWeight: FontWeight.bold, fontFamily: 'monospace'),
+                    ),
+                  )
+                ],
+              ),
+              const Expanded(child: SizedBox(height: 20)),
+              // Call Video Screen
+              Container(
+                height: 320,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.05),
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: Colors.white.withOpacity(0.1)),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Stack(
+                  children: [
+                    Center(
+                      child: !_connected
+                          ? Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const CircularProgressIndicator(color: Color(0xFF0089C1)),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'Verifying clinical spine link...',
+                                  style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12, fontWeight: FontWeight.bold),
+                                )
+                              ],
+                            )
+                          : Container(
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [Color(0xFF001C28), Color(0xFF0D9488)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                              ),
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      width: 80,
+                                      height: 80,
+                                      decoration: const BoxDecoration(
+                                        color: Color(0xFFD4F475),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        widget.doctorName.split(" ").map((n) => n[0]).join(""),
+                                        style: const TextStyle(color: Color(0xFF001C28), fontSize: 24, fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(widget.doctorName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                                    Text(widget.specialty, style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12, fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
+                              ),
+                            ),
+                    ),
+                    // Local Selfie PIP Overlay
+                    if (_connected)
+                      Positioned(
+                        bottom: 16,
+                        right: 16,
+                        child: Container(
+                          width: 80,
+                          height: 110,
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.6),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.white10),
+                          ),
+                          child: Center(
+                            child: _videoMuted
+                                ? const Icon(Icons.videocam_off, color: Colors.grey, size: 20)
+                                : const Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.person, color: Colors.white30, size: 24),
+                                      SizedBox(height: 4),
+                                      Text('Selfie Feed', style: TextStyle(color: Colors.white30, fontSize: 8)),
+                                    ],
+                                  ),
+                          ),
+                        ),
+                      )
+                  ],
+                ),
+              ),
+              const Expanded(child: SizedBox(height: 20)),
+              // Controls Deck
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: Icon(_muted ? Icons.mic_off : Icons.mic),
+                    color: _muted ? Colors.red : Colors.white,
+                    onPressed: () {
+                      setState(() {
+                        _muted = !_muted;
+                      });
+                    },
+                  ),
+                  const SizedBox(width: 24),
+                  IconButton(
+                    icon: Icon(_videoMuted ? Icons.videocam_off : Icons.videocam),
+                    color: _videoMuted ? Colors.red : Colors.white,
+                    onPressed: () {
+                      setState(() {
+                        _videoMuted = !_videoMuted;
+                      });
+                    },
+                  ),
+                  const SizedBox(width: 24),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      shape: const CircleBorder(),
+                      padding: const EdgeInsets.all(16),
+                    ),
+                    child: const Icon(Icons.call_end),
+                  )
+                ],
+              ),
+              const SizedBox(height: 24),
+            ],
+          ),
+        ),
       ),
     );
   }

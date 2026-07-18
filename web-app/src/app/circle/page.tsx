@@ -25,7 +25,11 @@ import {
 import { AhnaraCard } from "@/components/ahnara/AhnaraCard";
 import { AhnaraButton } from "@/components/ahnara/AhnaraButton";
 
+import { useAuth } from "@/components/ahnara/AuthContext";
+import { useEffect } from "react";
+
 export default function AhnaraCircleFeed() {
+  const { user } = useAuth();
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [peerMatched, setPeerMatched] = useState(false);
@@ -40,6 +44,56 @@ export default function AhnaraCircleFeed() {
   const [permGeriatric, setPermGeriatric] = useState(false);
   const [permLady, setPermLady] = useState(false);
   const [permGirlie, setPermGirlie] = useState(false);
+
+  useEffect(() => {
+    if (!user || user.id.startsWith("mock-")) return;
+    
+    const fetchConsents = async () => {
+      try {
+        const { api } = await import("@/lib/api");
+        const consents = await api.get("/consent");
+        
+        const granterConsents = consents.filter((c: any) => c.granterId === user.id);
+        
+        const maternalConsent = granterConsents.find((c: any) => c.scope === "maternal:share" || c.scope === "ehr:read");
+        if (maternalConsent) {
+          setPermMaternal(maternalConsent.status === "active");
+        }
+        
+        const pediatricConsent = granterConsents.find((c: any) => c.scope === "pediatric:share");
+        if (pediatricConsent) {
+          setPermPediatric(pediatricConsent.status === "active");
+        }
+        
+        const geriatricConsent = granterConsents.find((c: any) => c.scope === "scam_shield:share");
+        if (geriatricConsent) {
+          setPermGeriatric(geriatricConsent.status === "active");
+        }
+      } catch (err) {
+        console.error("Failed to load consents:", err);
+      }
+    };
+    
+    fetchConsents();
+  }, [user]);
+
+  const handleToggleConsent = async (scope: string, currentStatus: boolean, setStatus: React.Dispatch<React.SetStateAction<boolean>>) => {
+    const nextStatus = !currentStatus;
+    setStatus(nextStatus);
+    
+    if (!user || user.id.startsWith("mock-")) return;
+    
+    try {
+      const { api } = await import("@/lib/api");
+      await api.post("/consent", {
+        grantee_id: "usr-carer-001",
+        scope,
+        status: nextStatus ? "active" : "revoked",
+      });
+    } catch (err) {
+      console.error("Failed to update consent:", err);
+    }
+  };
 
   const categories = [
     { name: "Maternal Care", color: "bg-[#8BB436] text-white border-[#8BB436]", colorHex: "#8BB436" },
@@ -414,7 +468,7 @@ export default function AhnaraCircleFeed() {
                     <input 
                       type="checkbox" 
                       checked={permMaternal} 
-                      onChange={() => setPermMaternal(!permMaternal)}
+                      onChange={() => handleToggleConsent("maternal:share", permMaternal, setPermMaternal)}
                       className="rounded text-indigo-600 focus:ring-indigo-500"
                     />
                   </div>
@@ -423,7 +477,7 @@ export default function AhnaraCircleFeed() {
                     <input 
                       type="checkbox" 
                       checked={permPediatric} 
-                      onChange={() => setPermPediatric(!permPediatric)}
+                      onChange={() => handleToggleConsent("pediatric:share", permPediatric, setPermPediatric)}
                       className="rounded text-indigo-600 focus:ring-indigo-500"
                     />
                   </div>
@@ -432,7 +486,7 @@ export default function AhnaraCircleFeed() {
                     <input 
                       type="checkbox" 
                       checked={permGeriatric} 
-                      onChange={() => setPermGeriatric(!permGeriatric)}
+                      onChange={() => handleToggleConsent("scam_shield:share", permGeriatric, setPermGeriatric)}
                       className="rounded text-indigo-600 focus:ring-indigo-500"
                     />
                   </div>

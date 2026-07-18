@@ -22,6 +22,8 @@ import {
 import { AhnaraCard } from "@/components/ahnara/AhnaraCard";
 import { AhnaraButton } from "@/components/ahnara/AhnaraButton";
 
+import { useAuth } from "@/components/ahnara/AuthContext";
+
 interface BirthPlanState {
   painManagement: string[];
   companionName: string;
@@ -39,6 +41,7 @@ interface BirthPlanState {
 }
 
 export default function BirthPlanPage() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<"preferences" | "backups" | "verification">("preferences");
   
   // Birth plan state loaded from localStorage or initialized
@@ -58,19 +61,85 @@ export default function BirthPlanPage() {
 
   // Load plan state on mount
   useEffect(() => {
-    const saved = localStorage.getItem("mama_birth_plan");
-    if (saved) {
-      try {
-        setPlan(JSON.parse(saved));
-      } catch (e) {
-        console.error("Error loading birth plan", e);
+    if (!user || user.id.startsWith("mock-")) {
+      const saved = localStorage.getItem("mama_birth_plan");
+      if (saved) {
+        try {
+          setPlan(JSON.parse(saved));
+        } catch (e) {
+          console.error("Error loading birth plan", e);
+        }
       }
+      return;
     }
-  }, []);
 
-  const savePlan = (updated: BirthPlanState) => {
+    const loadPlanFromDb = async () => {
+      try {
+        const { api } = await import("@/lib/api");
+        const bpData = await api.get(`/ehr/birth-plans/patient/${user.id}`);
+        if (bpData) {
+          try {
+            const preferences = JSON.parse(bpData.deliveryPreferences);
+            setPlan({
+              painManagement: preferences.painManagement || [],
+              companionName: bpData.supportPerson || preferences.companionName || "",
+              companionRole: preferences.companionRole || "",
+              environment: preferences.environment || [],
+              backupHospital: bpData.birthFacility || preferences.backupHospital || "",
+              transportType: preferences.transportType || "",
+              bloodType: preferences.bloodType || "",
+              donorName: preferences.donorName || "",
+              donorPhone: preferences.donorPhone || "",
+              isLocked: preferences.isLocked || false,
+              verificationStatus: preferences.verificationStatus || "draft",
+              verifiedBy: preferences.verifiedBy || "",
+              verifiedDate: preferences.verifiedDate || "",
+            });
+          } catch(e) {
+            console.error("Error parsing delivery preferences", e);
+          }
+        }
+      } catch (err) {
+        console.warn("No birth plan found in microservices database, using draft/fallback.");
+      }
+    };
+
+    loadPlanFromDb();
+  }, [user]);
+
+  const savePlan = async (updated: BirthPlanState) => {
     setPlan(updated);
     localStorage.setItem("mama_birth_plan", JSON.stringify(updated));
+
+    if (!user || user.id.startsWith("mock-")) return;
+
+    try {
+      const { api } = await import("@/lib/api");
+      const deliveryPreferences = JSON.stringify({
+        painManagement: updated.painManagement,
+        companionName: updated.companionName,
+        companionRole: updated.companionRole,
+        environment: updated.environment,
+        backupHospital: updated.backupHospital,
+        transportType: updated.transportType,
+        bloodType: updated.bloodType,
+        donorName: updated.donorName,
+        donorPhone: updated.donorPhone,
+        isLocked: updated.isLocked,
+        verificationStatus: updated.verificationStatus,
+        verifiedBy: updated.verifiedBy,
+        verifiedDate: updated.verifiedDate,
+      });
+
+      await api.post("/ehr/birth-plans", {
+        patient_id: user.id,
+        birth_facility: updated.backupHospital,
+        support_person: updated.companionName,
+        delivery_preferences: deliveryPreferences,
+      });
+    } catch (err) {
+      console.error("Failed to sync birth plan with backend:", err);
+    }
   };
 
   const togglePainChoice = (choice: string) => {

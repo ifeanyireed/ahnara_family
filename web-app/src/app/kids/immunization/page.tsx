@@ -19,6 +19,7 @@ import {
   IconFlask,
   IconAlertOctagon
 } from "@tabler/icons-react";
+import { useAuth } from "@/components/ahnara/AuthContext";
 import { AhnaraCard } from "@/components/ahnara/AhnaraCard";
 import { AhnaraButton } from "@/components/ahnara/AhnaraButton";
 
@@ -35,6 +36,7 @@ interface VaccineDose {
 }
 
 export default function VaccineSchedulerPage() {
+  const { user } = useAuth();
   const [childName, setChildName] = useState("Aria");
   const [activeTab, setActiveTab] = useState<"timeline" | "wallet">("timeline");
   const [expandedCohortId, setExpandedCohortId] = useState<number | null>(2); // Expand 6 weeks by default
@@ -97,20 +99,75 @@ export default function VaccineSchedulerPage() {
 
   // Load child profile data
   useEffect(() => {
-    const dataStr = localStorage.getItem("kids_profile_data");
-    if (dataStr) {
-      try {
-        const data = JSON.parse(dataStr);
-        setChildName(data.childName || "Aria");
-      } catch (e) {}
+    if (!user || user.id.startsWith("mock-")) {
+      const dataStr = localStorage.getItem("kids_profile_data");
+      if (dataStr) {
+        try {
+          const data = JSON.parse(dataStr);
+          setChildName(data.childName || "Aria");
+        } catch (e) {}
+      }
+      return;
     }
-  }, []);
+
+    const fetchChildVaccines = async () => {
+      try {
+        const { api } = await import("@/lib/api");
+        
+        // Fetch household members to locate child
+        const members = await api.get("/households/hh-family-001/members");
+        const childMember = members.find((m: any) => m.relationType === "child");
+        
+        const childId = childMember ? childMember.userId : "usr-child-001";
+        
+        // Set name dynamically from split email or default
+        if (childMember && childMember.user) {
+          setChildName(childMember.user.email.split("@")[0].replace(".", " "));
+        } else {
+          setChildName("Aria");
+        }
+
+        const vaccineData = await api.get(`/ehr/vaccines/patient/${childId}`);
+        if (vaccineData && vaccineData.length > 0) {
+          const updatedDoses = initialDoses.map(cohort => {
+            const matchedDbVaccines = vaccineData.filter((v: any) => {
+              return cohort.details.some(dName => 
+                v.vaccineName.toLowerCase().includes(dName.toLowerCase()) || 
+                dName.toLowerCase().includes(v.vaccineName.toLowerCase())
+              );
+            });
+
+            if (matchedDbVaccines.length > 0) {
+              const allAdministered = matchedDbVaccines.every((v: any) => v.status === "administered");
+              const anyAdministered = matchedDbVaccines.some((v: any) => v.status === "administered");
+              const administeredDate = matchedDbVaccines.find((v: any) => v.administeredDate)?.administeredDate;
+              
+              return {
+                ...cohort,
+                status: allAdministered ? "administered" as const : anyAdministered ? "administered" as const : "scheduled" as const,
+                dateGiven: administeredDate ? new Date(administeredDate).toLocaleDateString() : cohort.dateGiven,
+                nurseName: "Nurse Priscilla O.",
+                batchNumber: "BATCH-" + matchedDbVaccines[0].id.substring(0, 5).toUpperCase(),
+                clinicName: "Health Center A",
+              };
+            }
+            return cohort;
+          });
+          setDoses(updatedDoses);
+        }
+      } catch (err) {
+        console.error("Failed to load child vaccine schedule from microservices:", err);
+      }
+    };
+
+    fetchChildVaccines();
+  }, [user]);
 
   const toggleExpand = (id: number) => {
     setExpandedCohortId(prev => prev === id ? null : id);
   };
 
-  const handleLogVaccine = (id: number, nurse: string, batch: string, clinic: string) => {
+  const handleLogVaccine = async (id: number, nurse: string, batch: string, clinic: string) => {
     setDoses(prev => prev.map(d => d.id === id ? {
       ...d,
       status: "administered",
@@ -119,6 +176,30 @@ export default function VaccineSchedulerPage() {
       batchNumber: batch,
       clinicName: clinic
     } : d));
+
+    if (!user || user.id.startsWith("mock-")) return;
+
+    try {
+      const { api } = await import("@/lib/api");
+      const cohort = doses.find(d => d.id === id);
+      if (!cohort) return;
+
+      const members = await api.get("/households/hh-family-001/members");
+      const childMember = members.find((m: any) => m.relationType === "child");
+      const childId = childMember ? childMember.userId : "usr-child-001";
+
+      for (const name of cohort.details) {
+        await api.post("/ehr/vaccines", {
+          patient_id: childId,
+          vaccine_name: name,
+          due_date: new Date().toISOString(),
+          status: "administered",
+          administered_date: new Date().toISOString(),
+        });
+      }
+    } catch (err) {
+      console.error("Failed to sync vaccine log to microservices:", err);
+    }
   };
 
   return (

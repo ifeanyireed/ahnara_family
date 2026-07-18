@@ -12,7 +12,8 @@ import {
   IconShieldCheck,
   IconClock,
   IconLogout,
-  IconSchool
+  IconSchool,
+  IconPhoneCall
 } from "@tabler/icons-react";
 import { useAuth } from "@/components/ahnara/AuthContext";
 import { AhnaraLoader } from "@/components/ahnara/AhnaraLoader";
@@ -39,6 +40,7 @@ export default function GirlieLayout({ children }: { children: React.ReactNode }
     { href: "/girlie/skin-hygiene", label: "Skin & Hygiene", icon: IconUser },
     { href: "/girlie/media-literacy", label: "Media Literacy", icon: IconShieldCheck },
     { href: "/girlie/parent-link", label: "Parent Link", icon: IconClock },
+    { href: "/girlie/consult", label: "Consults", icon: IconPhoneCall },
     { href: "/girlie/academy", label: "Academy", icon: IconSchool }
   ];
 

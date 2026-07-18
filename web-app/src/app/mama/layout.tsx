@@ -62,6 +62,7 @@ export default function MamaWorkspaceLayout({ children }: { children: React.Reac
     { name: "Antenatal", href: "/mama/anc", icon: IconCalendar, activeIcon: IconCalendarFilled },
     { name: "Birth Plan", href: "/mama/birth-plan", icon: IconFileDescription, activeIcon: IconFileDescriptionFilled },
     { name: "Meds", href: "/mama/meds", icon: IconPill, activeIcon: IconPillFilled },
+    { name: "Consults", href: "/mama/consult", icon: IconPhoneCall, activeIcon: IconPhoneCall },
     { name: "Academy", href: "/mama/academy", icon: IconBook, activeIcon: IconBookFilled },
   ];
 

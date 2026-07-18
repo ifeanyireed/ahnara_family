@@ -66,6 +66,7 @@ export default function SeniorsWorkspaceLayout({ children }: { children: React.R
     { name: "Vault", href: "/seniors/vault", icon: IconFolder, activeIcon: IconFolderFilled },
     { name: "Circle", href: "/seniors/circle", icon: IconCalendar, activeIcon: IconCalendarFilled },
     { name: "Scam Shield", href: "/seniors/scam-shield", icon: IconShield, activeIcon: IconShieldFilled },
+    { name: "Consults", href: "/seniors/consult", icon: IconPhoneCall, activeIcon: IconPhoneCall },
     { name: "Academy", href: "/seniors/academy", icon: IconBook, activeIcon: IconBookFilled },
   ];
 
